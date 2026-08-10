@@ -169,6 +169,9 @@ body {
   cursor: pointer; user-select: none; border: 1.5px solid transparent; color: #4a5265;
 }
 .chip.active { background: #e9edff; border-color: var(--primary); color: var(--primary); font-weight: 600; }
+.source-chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; }
+.source-del { font-size: 14px; color: #b0b6c4; padding: 0 2px; cursor: pointer; }
+.source-del:active { color: var(--danger); }
 
 /* question list */
 .q-item { cursor: pointer; }

@@ -1,4 +1,4 @@
-﻿// xcapp build 20260810-2130 v4.0
+﻿// xcapp build 20260810-2150 source history
 (function () {
   'use strict';
 
@@ -56,6 +56,7 @@
     scratch: false,
     scratchTool: 'pen',
     scratchColor: '#1f2430',
+    sourceHistory: [],
     settings: { reviewWeekday: 0 }
   };
 
@@ -199,6 +200,19 @@
     } catch (e) {
       state.settings = { reviewWeekday: 0 };
     }
+    try {
+      var srcRaw = typeof localStorage !== 'undefined' ? localStorage.getItem('xcapp_sources') : null;
+      state.sourceHistory = srcRaw ? JSON.parse(srcRaw) : [];
+      if (!Array.isArray(state.sourceHistory)) state.sourceHistory = [];
+    } catch (e) {
+      state.sourceHistory = [];
+    }
+  }
+  function saveSources() {
+    if (typeof localStorage === 'undefined') return;
+    try {
+      localStorage.setItem('xcapp_sources', JSON.stringify(state.sourceHistory.slice(0, 50)));
+    } catch (e) { /* ignore */ }
   }
   function saveSettings() {
     if (typeof localStorage === 'undefined') return;
@@ -2356,7 +2370,16 @@
     }
 
     html += '<div class="field"><span class="label">题目来源</span>' +
-      '<input class="input" id="f-source" placeholder="如：2026国考行测真题、粉笔题库、XX模拟卷" value="' + esc(f.source) + '"></div>';
+      '<input class="input" id="f-source" placeholder="如：2026国考行测真题、粉笔题库、XX模拟卷" value="' + esc(f.source) + '">';
+    if (state.sourceHistory.length) {
+      html += '<div class="chips" style="margin-top:8px">' +
+        state.sourceHistory.slice(0, 12).map(function (s) {
+          return '<span class="chip source-chip" data-act="fillSource" data-src="' + esc(s) + '">' + esc(s) +
+            '<span class="source-del" data-act="delSource" data-src="' + esc(s) + '" title="删除">×</span></span>';
+        }).join('') +
+        '</div>';
+    }
+    html += '</div>';
 
     html += '<div class="field"><span class="label">题干文字 <span class="muted">（可选，截图已含题干可留空）</span></span>' +
       '<textarea class="textarea" id="f-stem" rows="3" placeholder="题目内容（截图已包含题干时可留空）">' + esc(f.stem) + '</textarea></div>';
@@ -2664,6 +2687,11 @@
       });
     }
     save();
+    if (source) {
+      state.sourceHistory = state.sourceHistory.filter(function (s) { return s !== source; });
+      state.sourceHistory.unshift(source);
+      saveSources();
+    }
     state.overlay = null;
     state.form = null;
     state.tab = 'bank';
@@ -3208,6 +3236,18 @@
         break;
       case 'formSubCat':
         state.form.subCategory = sub;
+        state.keepScroll = true;
+        render();
+        break;
+      case 'fillSource':
+        state.form.source = el.getAttribute('data-src') || '';
+        state.keepScroll = true;
+        render();
+        break;
+      case 'delSource':
+        var delSrc = el.getAttribute('data-src') || '';
+        state.sourceHistory = state.sourceHistory.filter(function (s) { return s !== delSrc; });
+        saveSources();
         state.keepScroll = true;
         render();
         break;
