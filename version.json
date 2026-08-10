@@ -1,4 +1,4 @@
-﻿{
-  "version": 4,
-  "notes": "测试在线更新功能"
+{
+  "version": 5,
+  "notes": "修复BOM解析问题"
 }
