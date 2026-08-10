@@ -688,7 +688,7 @@
   function renderTabbar() {
     var el = $('#tabbar');
     if (state.overlay) { el.innerHTML = ''; return; }
-    var icons = { home: '首', ai: 'AI', stats: '统' };
+    var icons = { home: '🏠', ai: 'AI', stats: '📈' };
     el.innerHTML = NAV_TABS.map(function (t) {
       var active = state.tab === t.key || (t.key === 'home' && HOME_SUB_TABS.indexOf(state.tab) >= 0);
       return '<div class="tab' + (active ? ' active' : '') + '" data-act="switchTab" data-key="' + t.key + '">' +
@@ -826,6 +826,12 @@
         (t.cnt ? '<span class="cnt">' + t.cnt + '</span>' : '') +
         '</button>';
     });
+    html += '</div>';
+
+    html += '<div class="section-title">关于与更新</div>';
+    html += '<div class="card">';
+    html += '<p class="muted" style="font-size:13px">版本：' + esc(remoteVersionText()) + '<br>构建：' + esc(JS_BUILD) + '</p>';
+    html += '<button class="btn mt12" data-act="manualUpdate">检查更新</button>';
     html += '</div>';
     return html;
   }
@@ -2300,11 +2306,6 @@
     html += '<div class="section-title" style="margin-top:0">应用到现有错题</div>';
     html += '<p class="muted" style="font-size:13px">将上方默认星期应用到所有「待复盘」错题，已完成的错题不受影响。</p>';
     html += '<button class="btn mt12" data-act="applyWeekdayAll">应用到所有待复盘错题</button>';
-    html += '</div>';
-    html += '<div class="card">';
-    html += '<div class="section-title" style="margin-top:0">关于与更新</div>';
-    html += '<p class="muted" style="font-size:13px" id="ver-info">版本：' + esc(remoteVersionText()) + '<br>构建：' + esc(JS_BUILD) + '</p>';
-    html += '<button class="btn mt12" data-act="manualUpdate">检查更新</button>';
     html += '</div>';
     html += '</div></div>';
     return html;
