@@ -1,4 +1,4 @@
 {
-  "version": 5,
-  "notes": "修复BOM解析问题"
+  "version": 6,
+  "notes": "修复下载失败"
 }
