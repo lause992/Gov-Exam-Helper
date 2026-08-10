@@ -1,8 +1,8 @@
-﻿// xcapp build 20260810-2220 v10 test
+﻿// xcapp build 20260810-2230 v12 cachefix
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260810-2220 v10test';
+  var JS_BUILD = '20260810-2230 v12cache';
 
   var IS_NODE = typeof document === 'undefined';
 
