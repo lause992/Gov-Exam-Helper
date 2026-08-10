@@ -4,6 +4,12 @@
   var IS_NODE = typeof document === 'undefined';
 
   var CATEGORIES = ['言语理解', '政治理论', '常识判断', '判断推理', '资料分析', '数量关系'];
+  var SUBCATEGORIES = {
+    '常识判断': ['经济常识', '科技常识', '人文常识', '地理国情', '法律常识'],
+    '言语理解': ['逻辑填空', '片段阅读', '语句表达'],
+    '判断推理': ['图形推理', '定义判断', '类比推理', '逻辑判断'],
+    '政治理论': ['习思想', '马克思', '时政']
+  };
   var CAT_COLORS = {
     '言语理解': '#3b82f6',
     '政治理论': '#e5484d',
@@ -755,9 +761,13 @@
     return '';
   }
 
-  function catTag(cat, cls) {
+  function catTag(cat, sub, cls) {
     var color = CAT_COLORS[cat] || '#8a93a6';
-    return '<span class="tag" style="background:' + color + '">' + esc(cat) + '</span>';
+    var html = '<span class="tag" style="background:' + color + (cls ? ';' + cls : '') + '">' + esc(cat) + '</span>';
+    if (sub) {
+      html += '<span class="tag sub" style="color:' + color + '">' + esc(sub) + '</span>';
+    }
+    return html;
   }
 
   function statusTag(q) {
@@ -825,7 +835,7 @@
         html += '<div class="section-title">待复盘（' + due.length + '）</div>';
         due.forEach(function (q) {
           html += '<div class="card q-item">';
-          html += '<div class="q-top">' + catTag(q.category) + statusTag(q) + '</div>';
+          html += '<div class="q-top">' + catTag(q.category, q.subCategory) + statusTag(q) + '</div>';
           html += stemPreviewHtml(q);
           html += '<div class="q-meta">';
           html += '<span>' + (q.reviewWeekday ? '每周' + wdLabel(q.reviewWeekday) + ' · ' : '') + '复盘日 ' + fmtDate(q.reviewDate) + '</span>';
@@ -843,7 +853,7 @@
         next.forEach(function (q) {
           var remain = Math.ceil((new Date(q.reviewDate) - new Date(today)) / 86400000);
           html += '<div class="card q-item">';
-          html += '<div class="q-top">' + catTag(q.category) + statusTag(q) + '</div>';
+          html += '<div class="q-top">' + catTag(q.category, q.subCategory) + statusTag(q) + '</div>';
           html += stemPreviewHtml(q);
           html += '<div class="q-meta">';
           html += '<span>' + (q.reviewWeekday ? '每周' + wdLabel(q.reviewWeekday) + ' · ' : '') + '复盘日 ' + fmtDate(q.reviewDate) + '（约' + remain + '天后）</span>';
@@ -859,7 +869,7 @@
         html += '<div class="section-title">已完成（' + done.length + '）</div>';
         done.forEach(function (q) {
           html += '<div class="card q-item">';
-          html += '<div class="q-top">' + catTag(q.category) + '<span class="tag done">已掌握</span></div>';
+          html += '<div class="q-top">' + catTag(q.category, q.subCategory) + '<span class="tag done">已掌握</span></div>';
           html += stemPreviewHtml(q);
           html += '<div class="q-meta">';
           html += '<span>已复盘 ' + (q.rounds || 0) + ' 次</span>';
@@ -883,7 +893,7 @@
 
   function qItemHtml(q, extra) {
     return '<div class="card q-item" data-act="openDetail" data-id="' + q.id + '">' +
-      '<div class="q-top">' + catTag(q.category) + statusTag(q) + '</div>' +
+      '<div class="q-top">' + catTag(q.category, q.subCategory) + statusTag(q) + '</div>' +
       stemPreviewHtml(q) +
       '<div class="q-meta">' +
       (q.reviewDate ? '<span>' + (q.reviewWeekday ? '每周' + wdLabel(q.reviewWeekday) + ' · ' : '') + '复盘日 ' + fmtDate(q.reviewDate) + '</span>' : '') +
@@ -2215,7 +2225,7 @@
 
   function openForm(q) {
     state.form = q ? {
-      id: q.id, category: q.category, stem: q.stem,
+      id: q.id, category: q.category, subCategory: q.subCategory || '', stem: q.stem,
       options: (q.options || []).slice(), answer: q.answer,
       wrongThinking: q.wrongThinking || '', correctThinking: q.correctThinking || '',
       reviewDays: q.reviewDays || 3, reviewWeekday: q.reviewWeekday || 0, image: q.image || null, original: q,
@@ -2228,7 +2238,7 @@
   function freshForm(q) {
     var emptyImgs = (q ? (q.options || []) : ['', '', '', '']).map(function () { return null; });
     return {
-      id: q && q.id ? q.id : null, category: q ? q.category : '', stem: q ? q.stem : '',
+      id: q && q.id ? q.id : null, category: q ? q.category : '', subCategory: q ? q.subCategory || '' : '', stem: q ? q.stem : '',
       options: (q ? (q.options || []) : ['', '', '', '']).slice(), answer: q ? q.answer : '',
       wrongThinking: q ? q.wrongThinking || '' : '', correctThinking: q ? q.correctThinking || '' : '',
       reviewDays: q ? q.reviewDays || 3 : 3, reviewWeekday: q ? q.reviewWeekday || 0 : (state.settings.reviewWeekday || 0), image: q ? q.image || null : null, original: q || null,
@@ -2315,6 +2325,16 @@
         return '<span class="chip' + (f.category === c ? ' active' : '') + '" data-act="formCat" data-cat="' + c + '">' + c + '</span>';
       }).join('') +
       '</div></div>';
+
+    var subCats = SUBCATEGORIES[f.category];
+    if (subCats && subCats.length) {
+      html += '<div class="field"><span class="label">子分类</span>' +
+        '<div class="chips">' +
+        subCats.map(function (sc) {
+          return '<span class="chip' + (f.subCategory === sc ? ' active' : '') + '" data-act="formSubCat" data-sub="' + sc + '">' + sc + '</span>';
+        }).join('') +
+        '</div></div>';
+    }
 
     html += '<div class="field"><span class="label">题目来源</span>' +
       '<input class="input" id="f-source" placeholder="如：2026国考行测真题、粉笔题库、XX模拟卷" value="' + esc(f.source) + '"></div>';
@@ -2406,7 +2426,7 @@
       '<div class="overlay-body">';
 
     html += '<div class="card">';
-    html += '<div class="q-top">' + catTag(q.category) + statusTag(q) + '</div>';
+    html += '<div class="q-top">' + catTag(q.category, q.subCategory) + statusTag(q) + '</div>';
     if (q.source) html += '<p class="muted" style="margin-top:6px">来源：' + esc(q.source) + '</p>';
     if (q.reviewDate) html += '<p class="muted">' + (q.reviewWeekday ? '固定每周' + wdLabel(q.reviewWeekday) + '复盘 · ' : '') + '复盘日：' + fmtDate(q.reviewDate) + '　已复盘 ' + (q.rounds || 0) + ' 次</p>';
     if (q.stem) html += '<p style="font-size:14.5px;white-space:pre-wrap;margin-top:8px">' + esc(q.stem) + '</p>';
@@ -2480,7 +2500,7 @@
 
     html += '<div class="practice-head">' +
       '<span class="round-badge">第 ' + ((q.rounds || 0) + 1) + ' 次复盘</span>' +
-      '<h2>' + catTag(q.category) + '</h2></div>';
+      '<h2>' + catTag(q.category, q.subCategory) + '</h2></div>';
 
     html += '<div class="card">';
     if (q.stem) html += '<p style="font-size:15px;white-space:pre-wrap">' + esc(q.stem) + '</p>';
@@ -2587,6 +2607,7 @@
     if (f.id) {
       var q = findQ(f.id);
       q.category = category;
+      q.subCategory = f.subCategory || '';
       q.stem = stem;
       q.options = opts;
       q.optImgs = optImgs;
@@ -2604,6 +2625,7 @@
       state.questions.unshift({
         id: uid(),
         category: category,
+        subCategory: f.subCategory || '',
         stem: stem,
         options: opts,
         optImgs: optImgs,
@@ -3130,6 +3152,12 @@
         break;
       case 'formCat':
         state.form.category = cat;
+        state.form.subCategory = '';
+        state.keepScroll = true;
+        render();
+        break;
+      case 'formSubCat':
+        state.form.subCategory = sub;
         state.keepScroll = true;
         render();
         break;
