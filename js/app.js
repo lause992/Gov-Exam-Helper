@@ -1,8 +1,8 @@
-﻿// xcapp build 20260810-2230 v12 cachefix
+// xcapp build 20260810-2240 v13 svg
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260810-2230 v12cache';
+  var JS_BUILD = '20260810-2240 v13svg';
 
   var IS_NODE = typeof document === 'undefined';
 
@@ -688,7 +688,11 @@
   function renderTabbar() {
     var el = $('#tabbar');
     if (state.overlay) { el.innerHTML = ''; return; }
-    var icons = { home: '🏠', ai: 'AI', stats: '📈' };
+    var icons = {
+      home: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
+      ai: 'AI',
+      stats: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>'
+    };
     el.innerHTML = NAV_TABS.map(function (t) {
       var active = state.tab === t.key || (t.key === 'home' && HOME_SUB_TABS.indexOf(state.tab) >= 0);
       return '<div class="tab' + (active ? ' active' : '') + '" data-act="switchTab" data-key="' + t.key + '">' +
