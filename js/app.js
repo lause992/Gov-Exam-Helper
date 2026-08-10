@@ -2280,10 +2280,12 @@
   function remoteVersionText() {
     try {
       if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersion === 'function') {
-        return String(window.AndroidBridge.getAppVersion());
+        var raw = window.AndroidBridge.getAppVersion();
+        var v = JSON.parse(raw);
+        return 'v' + (v.base || '1.0') + '（远程版本 ' + (v.local || 0) + '）';
       }
     } catch (e) { /* ignore */ }
-    return '1.0';
+    return 'v1.0';
   }
 
   function renderForm() {
