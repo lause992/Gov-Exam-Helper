@@ -1,4 +1,4 @@
-﻿// xcapp build 20260810-2115
+﻿// xcapp build 20260810-2130 v4.0
 (function () {
   'use strict';
 
@@ -36,6 +36,7 @@
     questions: [],
     search: '',
     filterCat: 'all',
+    filterSub: '',
     form: null,
     practice: null,
     ocrRunning: false,
@@ -54,6 +55,7 @@
     calcTimerId: null,
     scratch: false,
     scratchTool: 'pen',
+    scratchColor: '#1f2430',
     settings: { reviewWeekday: 0 }
   };
 
@@ -912,9 +914,19 @@
         return '<span class="chip' + (state.filterCat === c ? ' active' : '') + '" data-act="filterCat" data-cat="' + c + '">' + c + '</span>';
       }).join('') + '</div>';
 
+    var subCats = SUBCATEGORIES[state.filterCat];
+    if (subCats && subCats.length) {
+      html += '<div class="chips" style="margin-bottom:12px">' +
+        '<span class="chip' + (!state.filterSub ? ' active' : '') + '" data-act="filterSub" data-sub="all">全部子类</span>' +
+        subCats.map(function (sc) {
+          return '<span class="chip' + (state.filterSub === sc ? ' active' : '') + '" data-act="filterSub" data-sub="' + sc + '">' + sc + '</span>';
+        }).join('') + '</div>';
+    }
+
     var kw = state.search.trim();
     var list = state.questions.filter(function (q) {
       if (state.filterCat !== 'all' && q.category !== state.filterCat) return false;
+      if (state.filterSub && q.subCategory !== state.filterSub) return false;
       if (kw) {
         var optText = (q.options || []).join(' ');
         if ((q.stem || '').indexOf(kw) < 0 && (q.correctThinking || '').indexOf(kw) < 0 &&
@@ -987,9 +999,13 @@
 
   function renderScratch() {
     var isErase = state.scratchTool === 'eraser';
+    var colors = [['#1f2430', '黑'], ['#d32f2f', '红'], ['#1565c0', '蓝']];
     var html = '<div class="scratch-layer" id="scratch-layer">' +
       '<div class="scratch-bar">' +
       '<span class="scratch-tip">' + (isErase ? '橡皮擦模式：擦除笔迹' : '手写笔 / 手指直接书写') + '</span>' +
+      colors.map(function (c) {
+        return '<button class="scratch-color' + (!isErase && state.scratchColor === c[0] ? ' active' : '') + '" data-act="scratchColor" data-color="' + c[0] + '" title="' + c[1] + '色笔" style="background:' + c[0] + '"></button>';
+      }).join('') +
       '<button class="btn gray sm' + (isErase ? ' active' : '') + '" data-act="scratchTool" data-tool="eraser" title="橡皮擦">橡皮</button>' +
       '<button class="btn gray sm' + (!isErase ? ' active' : '') + '" data-act="scratchTool" data-tool="pen" title="画笔">画笔</button>' +
       '<button class="btn gray sm" data-act="scratchClear">清空</button>' +
@@ -1024,7 +1040,7 @@
     var isEraser = function () { return state.scratchTool === 'eraser'; };
     function applyMode() {
       ctx.globalCompositeOperation = isEraser() ? 'destination-out' : 'source-over';
-      ctx.strokeStyle = isEraser() ? 'rgba(0,0,0,1)' : '#1f2430';
+      ctx.strokeStyle = isEraser() ? 'rgba(0,0,0,1)' : state.scratchColor;
     }
     applyMode();
     var drawing = false;
@@ -2878,6 +2894,7 @@
     var act = el.getAttribute('data-act');
     var id = el.getAttribute('data-id');
     var cat = el.getAttribute('data-cat');
+    var sub = el.getAttribute('data-sub');
     var key = el.getAttribute('data-key');
     var days = el.getAttribute('data-days');
     var kind = el.getAttribute('data-kind');
@@ -3123,6 +3140,11 @@
         break;
       case 'filterCat':
         state.filterCat = cat;
+        state.filterSub = '';
+        render();
+        break;
+      case 'filterSub':
+        state.filterSub = sub === 'all' ? '' : sub;
         render();
         break;
       case 'toggleScratch':
@@ -3143,6 +3165,9 @@
           $all('[data-act="scratchTool"]', scTb).forEach(function (b) {
             b.classList.toggle('active', b.getAttribute('data-tool') === tool);
           });
+          $all('[data-act="scratchColor"]', scTb).forEach(function (b) {
+            b.classList.toggle('active', tool !== 'eraser' && b.getAttribute('data-color') === state.scratchColor);
+          });
           var scTip = $('.scratch-tip', scTb);
           if (scTip) scTip.textContent = tool === 'eraser' ? '橡皮擦模式：擦除笔迹' : '手写笔 / 手指直接书写';
         }
@@ -3150,7 +3175,29 @@
         if (scCv) {
           var scCtx = scCv.getContext('2d');
           scCtx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
-          scCtx.strokeStyle = tool === 'eraser' ? 'rgba(0,0,0,1)' : '#1f2430';
+          scCtx.strokeStyle = tool === 'eraser' ? 'rgba(0,0,0,1)' : state.scratchColor;
+        }
+        break;
+      case 'scratchColor':
+        var scColor = el.getAttribute('data-color') || '#1f2430';
+        state.scratchColor = scColor;
+        state.scratchTool = 'pen';
+        var scCv2 = $('#scratch-canvas');
+        if (scCv2) {
+          var scCtx2 = scCv2.getContext('2d');
+          scCtx2.globalCompositeOperation = 'source-over';
+          scCtx2.strokeStyle = scColor;
+        }
+        var scTb2 = $('.scratch-bar');
+        if (scTb2) {
+          $all('[data-act="scratchTool"]', scTb2).forEach(function (b) {
+            b.classList.toggle('active', b.getAttribute('data-tool') === 'pen');
+          });
+          $all('[data-act="scratchColor"]', scTb2).forEach(function (b) {
+            b.classList.toggle('active', b.getAttribute('data-color') === scColor);
+          });
+          var scTip2 = $('.scratch-tip', scTb2);
+          if (scTip2) scTip2.textContent = '手写笔 / 手指直接书写';
         }
         break;
       case 'formCat':
@@ -3563,6 +3610,7 @@
     var kw = state.search.trim();
     var list = state.questions.filter(function (q) {
       if (state.filterCat !== 'all' && q.category !== state.filterCat) return false;
+      if (state.filterSub && q.subCategory !== state.filterSub) return false;
       if (kw) {
         var optText = (q.options || []).join(' ');
         if ((q.stem || '').indexOf(kw) < 0 && (q.correctThinking || '').indexOf(kw) < 0 &&
