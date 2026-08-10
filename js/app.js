@@ -1,6 +1,8 @@
-﻿// xcapp build 20260810-2150 source history
+﻿// xcapp build 20260810-2220 v10 test
 (function () {
   'use strict';
+
+  var JS_BUILD = '20260810-2220 v10test';
 
   var IS_NODE = typeof document === 'undefined';
 
@@ -2301,7 +2303,7 @@
     html += '</div>';
     html += '<div class="card">';
     html += '<div class="section-title" style="margin-top:0">关于与更新</div>';
-    html += '<p class="muted" style="font-size:13px" id="ver-info">版本：' + esc(remoteVersionText()) + '</p>';
+    html += '<p class="muted" style="font-size:13px" id="ver-info">版本：' + esc(remoteVersionText()) + '<br>构建：' + esc(JS_BUILD) + '</p>';
     html += '<button class="btn mt12" data-act="manualUpdate">检查更新</button>';
     html += '</div>';
     html += '</div></div>';
