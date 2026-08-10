@@ -1,4 +1,5 @@
-﻿(function () {
+﻿// xcapp build 20260810-2115
+(function () {
   'use strict';
 
   var IS_NODE = typeof document === 'undefined';
