@@ -384,6 +384,8 @@ body {
 .news-star { font-size: 20px; color: #c9cfda; cursor: pointer; line-height: 1; padding: 2px; flex: 0 0 auto; }
 .news-star.on { color: #f5a623; }
 .news-list { max-height: 60vh; overflow-y: auto; }
+.leader-tag { display: inline-block; background: var(--primary); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 11px; }
+.leader-domain { color: var(--primary); font-weight: 600; }
 
 /* idiom */
 .idiom-page { padding-bottom: 20px; }
