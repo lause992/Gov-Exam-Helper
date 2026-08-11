@@ -1,8 +1,8 @@
-// xcapp build 20260810-2240 v13 svg
+// xcapp build 20260810-2300 v14 scratchfix
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260810-2240 v13svg';
+  var JS_BUILD = '20260810-2300 v14scratch';
 
   var IS_NODE = typeof document === 'undefined';
 
@@ -768,7 +768,10 @@
     }
     if (state.overlay && state.overlay.type === 'crop') initCrop();
     if (state.tab === 'bank') initFab();
-    if (state.overlay && state.overlay.type === 'practice' && state.scratch) initScratch();
+    if (state.overlay && state.overlay.type === 'practice' && state.scratch) {
+      content.insertAdjacentHTML('beforeend', renderScratch());
+      initScratch();
+    }
     restoreActiveInput(activeInfo);
   }
 
@@ -1051,18 +1054,46 @@
     if (!canvas) return;
     var wrap = $('.scratch-canvas-wrap');
     if (!wrap) return;
-    var dpr = window.devicePixelRatio || 1;
-    var w = wrap.clientWidth;
-    var h = wrap.clientHeight;
-    if (w < 10 || h < 10) return;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+
+    function resizeCanvas() {
+      var dpr = window.devicePixelRatio || 1;
+      var w = wrap.clientWidth;
+      var h = wrap.clientHeight;
+      if (w < 10 || h < 10) return false;
+      var prev = null;
+      try {
+        if (canvas.width > 0 && canvas.height > 0) {
+          var tmp = document.createElement('canvas');
+          tmp.width = canvas.width;
+          tmp.height = canvas.height;
+          tmp.getContext('2d').drawImage(canvas, 0, 0);
+          prev = tmp;
+        }
+      } catch (e) { /* ignore */ }
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      var ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (prev) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, canvas.width, canvas.height);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      return true;
+    }
+
+    if (!resizeCanvas()) {
+      setTimeout(function () { resizeCanvas(); }, 50);
+      setTimeout(function () { resizeCanvas(); }, 200);
+    }
+    setTimeout(function () { resizeCanvas(); }, 500);
+    setTimeout(function () { resizeCanvas(); }, 1000);
+
     var ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
     var isEraser = function () { return state.scratchTool === 'eraser'; };
     function applyMode() {
       ctx.globalCompositeOperation = isEraser() ? 'destination-out' : 'source-over';
@@ -1072,21 +1103,21 @@
     var drawing = false;
     var lastX = 0;
     var lastY = 0;
-    function pos(e) {
+    function pos(clientX, clientY) {
       var r = canvas.getBoundingClientRect();
-      return { x: e.clientX - r.left, y: e.clientY - r.top };
+      return { x: clientX - r.left, y: clientY - r.top };
     }
     function widthFor(e) {
       if (isEraser()) return 22;
       var p = e.pressure || 0;
       if (p > 0) return Math.max(1.5, p * 5);
-      return e.pointerType === 'touch' ? 3 : 2;
+      var pt = e.pointerType || (e.touches ? 'touch' : 'mouse');
+      return pt === 'touch' ? 3 : 2;
     }
-    function onDown(e) {
-      e.preventDefault();
+    function startDraw(clientX, clientY, e) {
       drawing = true;
       applyMode();
-      var p = pos(e);
+      var p = pos(clientX, clientY);
       lastX = p.x;
       lastY = p.y;
       ctx.lineWidth = widthFor(e);
@@ -1094,33 +1125,84 @@
       ctx.moveTo(p.x, p.y);
       ctx.lineTo(p.x + 0.01, p.y + 0.01);
       ctx.stroke();
-      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
     }
-    function onMove(e) {
+    function moveDraw(clientX, clientY, e) {
       if (!drawing) return;
-      e.preventDefault();
       applyMode();
-      var p = pos(e);
+      var p = pos(clientX, clientY);
       ctx.lineWidth = widthFor(e);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
       lastX = p.x;
       lastY = p.y;
     }
-    function onUp(e) {
+    function endDraw(clientX, clientY) {
       if (!drawing) return;
+      if (clientX != null && clientY != null) {
+        var p = pos(clientX, clientY);
+        if (Math.abs(p.x - lastX) > 0.1 || Math.abs(p.y - lastY) > 0.1) {
+          ctx.lineTo(p.x, p.y);
+          ctx.stroke();
+        }
+      }
       drawing = false;
-      if (e && e.type === 'pointerup' && (e.clientX !== lastX || e.clientY !== lastY)) {
-        ctx.lineTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
-        ctx.stroke();
+    }
+    function onPointerDown(e) {
+      var curW = parseInt(canvas.style.width, 10);
+      var curH = parseInt(canvas.style.height, 10);
+      if (curW !== wrap.clientWidth || curH !== wrap.clientHeight) resizeCanvas();
+      e.preventDefault();
+      startDraw(e.clientX, e.clientY, e);
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    }
+    function onPointerMove(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      moveDraw(e.clientX, e.clientY, e);
+    }
+    function onPointerUp(e) {
+      endDraw(e.clientX, e.clientY);
+    }
+    function onTouchStart(e) {
+      if (e.touches && e.touches.length > 0) {
+        e.preventDefault();
+        var t = e.touches[0];
+        startDraw(t.clientX, t.clientY, { touches: e.touches, pressure: t.force || 0 });
       }
     }
+    function onTouchMove(e) {
+      if (!drawing) return;
+      if (e.touches && e.touches.length > 0) {
+        e.preventDefault();
+        var t = e.touches[0];
+        moveDraw(t.clientX, t.clientY, { touches: e.touches, pressure: t.force || 0 });
+      }
+    }
+    function onTouchEnd(e) {
+      var cx = null, cy = null;
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        cx = e.changedTouches[0].clientX;
+        cy = e.changedTouches[0].clientY;
+      }
+      endDraw(cx, cy);
+    }
     function onLeave(e) { if (drawing) drawing = false; }
-    canvas.addEventListener('pointerdown', onDown);
-    canvas.addEventListener('pointermove', onMove);
-    canvas.addEventListener('pointerup', onUp);
-    canvas.addEventListener('pointercancel', onUp);
+    canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+    canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
     canvas.addEventListener('pointerleave', onLeave);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd);
+    canvas.addEventListener('touchcancel', onTouchEnd);
+    var resizeTimer = null;
+    var winResize = function () {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () { resizeCanvas(); }, 150);
+    };
+    window.addEventListener('resize', winResize);
+    window.addEventListener('orientationchange', winResize);
   }
 
   function renderStats() {
@@ -2599,7 +2681,6 @@
       html += '</div>';
     }
     html += '</div>';
-    if (state.scratch) html += renderScratch();
     html += '</div>';
     return html;
   }
@@ -3157,6 +3238,7 @@
       case 'closePractice':
         state.practice = null;
         state.overlay = null;
+        state.scratch = false;
         if (state.tab === 'add') state.tab = 'bank';
         render();
         break;
@@ -3184,6 +3266,7 @@
         break;
       case 'toggleScratch':
         state.scratch = !state.scratch;
+        state.keepScroll = true;
         render();
         break;
       case 'scratchClear':
