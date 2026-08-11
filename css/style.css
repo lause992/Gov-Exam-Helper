@@ -157,6 +157,7 @@ body {
 }
 .section-title { font-size: 15px; font-weight: 700; margin: 16px 2px 10px; display: flex; align-items: center; gap: 6px; }
 .section-title .count { color: var(--primary); }
+.home-credit { text-align: center; color: #b0b7c5; font-size: 12px; padding: 6px 0 4px; letter-spacing: 1px; }
 
 /* buttons */
 .btn {

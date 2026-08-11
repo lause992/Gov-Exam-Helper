@@ -1,8 +1,8 @@
-// xcapp build 20260811-0955 v17 aibtn
+// xcapp build 20260811-1030 v19 ai+wrongbookbtn
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260811-0955 v17ai';
+  var JS_BUILD = '20260811-1030 v19ai';
 
   var IS_NODE = typeof document === 'undefined';
 
@@ -52,6 +52,8 @@
     homeNews: null,
     idiom: { loading: false, result: null, saved: [], input: '', proof: { loading: false, text: '' } },
     ai: { loading: false, history: [], input: '', pendingImg: '' },
+    aiAnalyzing: false,
+    aiAnalysis: '',
     fabPos: null,
     fabDragged: false,
     calcTimerId: null,
@@ -840,6 +842,7 @@
     html += '<p class="muted" style="font-size:13px">版本：' + esc(remoteVersionText()) + '<br>构建：' + esc(JS_BUILD) + '</p>';
     html += '<button class="btn mt12" data-act="manualUpdate">检查更新</button>';
     html += '</div>';
+    html += '<div class="home-credit">来自双休日</div>';
     return html;
   }
 
@@ -1235,7 +1238,15 @@
         '<span class="n">' + d + '/' + arr.length + '</span>' +
         '</div>';
     });
+    html += '<button class="btn mt12" data-act="aiAnalyze">' + (state.aiAnalyzing ? 'AI 分析中…' : 'AI 分析学习情况') + '</button>';
     html += '</div>';
+
+    if (state.aiAnalysis) {
+      html += '<div class="section-title">AI 学习分析</div><div class="card">';
+      html += '<div class="ai-msg bot" style="padding:0;background:none">' + mdRender(state.aiAnalysis) + '</div>';
+      html += '<button class="btn gray sm mt12" data-act="clearAiAnalysis">收起分析</button>';
+      html += '</div>';
+    }
 
     html += '<div class="section-title">数据备份</div><div class="card">';
     html += '<div class="btn-row">' +
@@ -1938,6 +1949,53 @@
     });
   }
 
+  function buildWrongBookSummary() {
+    try {
+      var qs = state.questions || [];
+      if (!qs.length) return '';
+      var today = todayStr();
+      var pending = qs.filter(function (q) { return q.status === 'pending'; });
+      var done = qs.filter(function (q) { return q.status === 'done'; });
+      var overdue = pending.filter(function (q) { return q.reviewDate < today; }).length;
+      var dueToday = pending.filter(function (q) { return q.reviewDate === today; }).length;
+      var byCat = {};
+      var bySub = {};
+      var wrongRounds = 0;
+      var wrongTotal = 0;
+      qs.forEach(function (q) {
+        var c = q.category || '未分类';
+        byCat[c] = (byCat[c] || 0) + 1;
+        var s = q.subCategory;
+        if (s) bySub[s] = (bySub[s] || 0) + 1;
+        (q.reviewHistory || []).forEach(function (h) {
+          wrongTotal++;
+          if (!h.correct) wrongRounds++;
+        });
+      });
+      var catRank = Object.keys(byCat).sort(function (a, b) { return byCat[b] - byCat[a]; });
+      var subRank = Object.keys(bySub).sort(function (a, b) { return bySub[b] - bySub[a]; });
+      var weak = [];
+      catRank.forEach(function (c) {
+        var arr = qs.filter(function (q) { return q.category === c; });
+        var d = arr.filter(function (q) { return q.status === 'done'; }).length;
+        var rate = arr.length ? Math.round(d / arr.length * 100) : 0;
+        weak.push(c + '（共' + arr.length + '题，完成率' + rate + '%）');
+      });
+      var parts = [
+        '【我的错题本数据摘要】',
+        '错题总数：' + qs.length + '题；待复盘：' + pending.length + '题；已复盘：' + done.length + '题。',
+        '逾期未复盘：' + overdue + '题；今天应复盘：' + dueToday + '题。',
+        '最近' + wrongTotal + '次复盘记录中答错' + wrongRounds + '次（正确率' + (wrongTotal ? Math.round((wrongTotal - wrongRounds) / wrongTotal * 100) : 100) + '%）。',
+        '各分类题量排序：' + catRank.join('、') + '。',
+        '各分类复盘完成情况：' + weak.join('；') + '。'
+      ];
+      if (subRank.length) {
+        parts.push('高频子分类：' + subRank.slice(0, 6).join('、') + '。');
+      }
+      return parts.join('\n');
+    } catch (e) { return ''; }
+  }
+
   function fetchAiAnswer(question, history) {
     var q = String(question || '');
     var now = new Date();
@@ -1949,6 +2007,11 @@
       '你的知识截止时间较早，遇到需要最新时政、新闻、时事热点的问题时，必须只依据用户消息中提供的新闻列表作答，不要编造或使用你记忆中的旧新闻，也不要编造新闻。' +
       '回答要简洁、准确、有条理，适当使用换行和序号。' +
       '下面是本次对话的上下文历史（用户和你的历史问答），请结合上下文理解用户意图，但回答时以最新问题为准。';
+    var wrongSummary = buildWrongBookSummary();
+    if (wrongSummary) {
+      sysPrompt += '\n\n【用户错题数据】\n' + wrongSummary +
+        '\n当用户询问学习建议、复习计划、薄弱项分析、答题技巧等相关问题时，请结合以上错题数据给出针对性建议（如指出薄弱分类、建议优先复习的方向）；其他问题无需刻意提及这些数据。';
+    }
     var msgs = [{ role: 'system', content: sysPrompt }];
     if (history && history.length) {
       var recent = history.slice(-20);
@@ -3126,6 +3189,33 @@
             updateIdiomSavedBox();
             toast('已清空');
           }
+        });
+        break;
+      case 'clearAiAnalysis':
+        state.aiAnalysis = '';
+        state.keepScroll = true;
+        render();
+        break;
+      case 'aiAnalyze':
+        if (state.aiAnalyzing) return;
+        if (!(state.questions || []).length) { toast('暂无错题数据，先去添加错题吧'); return; }
+        state.aiAnalyzing = true;
+        state.keepScroll = true;
+        render();
+        var summary = buildWrongBookSummary();
+        fetchAiAnswer(
+          '请根据我的错题本数据，分析我的学习情况：指出薄弱环节（分类和子分类）、复盘进度的风险点（逾期/待复盘）、以及接下来的复习建议（哪些分类优先、每天怎么安排）。请用中文简洁回答，600字以内。\n\n【数据】\n' + summary,
+          []
+        ).then(function (txt) {
+          state.aiAnalyzing = false;
+          state.aiAnalysis = txt;
+          state.keepScroll = true;
+          render();
+        }).catch(function (err) {
+          state.aiAnalyzing = false;
+          state.keepScroll = true;
+          render();
+          toast('AI 分析失败：' + ((err && err.message) || '请重试'));
         });
         break;
       case 'sendAiQuestion':
