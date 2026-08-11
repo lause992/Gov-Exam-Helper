@@ -1,8 +1,8 @@
-// xcapp build 20260810-2300 v14 scratchfix
+// xcapp build 20260811-0930 v15 scratchbar
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260810-2300 v14scratch';
+  var JS_BUILD = '20260811-0930 v15bar';
 
   var IS_NODE = typeof document === 'undefined';
 
@@ -1031,10 +1031,11 @@
     var colors = [['#1f2430', '黑'], ['#d32f2f', '红'], ['#1565c0', '蓝']];
     var html = '<div class="scratch-layer" id="scratch-layer">' +
       '<div class="scratch-bar">' +
-      '<span class="scratch-tip">' + (isErase ? '橡皮擦模式：擦除笔迹' : '手写笔 / 手指直接书写') + '</span>' +
+      '<span class="scratch-colors">' +
       colors.map(function (c) {
         return '<button class="scratch-color' + (!isErase && state.scratchColor === c[0] ? ' active' : '') + '" data-act="scratchColor" data-color="' + c[0] + '" title="' + c[1] + '色笔" style="background:' + c[0] + '"></button>';
       }).join('') +
+      '</span>' +
       '<button class="btn gray sm' + (isErase ? ' active' : '') + '" data-act="scratchTool" data-tool="eraser" title="橡皮擦">橡皮</button>' +
       '<button class="btn gray sm' + (!isErase ? ' active' : '') + '" data-act="scratchTool" data-tool="pen" title="画笔">画笔</button>' +
       '<button class="btn gray sm" data-act="scratchClear">清空</button>' +
@@ -1048,8 +1049,6 @@
   function initScratch() {
     var layer = $('#scratch-layer');
     if (!layer) return;
-    var head = $('.overlay-head');
-    if (head) layer.style.top = head.offsetHeight + 'px';
     var canvas = $('#scratch-canvas');
     if (!canvas) return;
     var wrap = $('.scratch-canvas-wrap');
