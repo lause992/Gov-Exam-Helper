@@ -1,8 +1,8 @@
-// xcapp build 20260811-1030 v19 ai+wrongbookbtn
+// xcapp build 20260811-1045 v20 cacheprobe
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260811-1030 v19ai';
+  var JS_BUILD = '20260811-1045 v20probe';
 
   var IS_NODE = typeof document === 'undefined';
 
