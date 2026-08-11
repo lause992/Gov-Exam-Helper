@@ -130,6 +130,22 @@ body {
 .tab .ico { font-size: 21px; display: block; line-height: 1.3; }
 .tab .ico svg { display: block; margin: 0 auto; }
 .tab.active { color: var(--primary); font-weight: 600; }
+.tab-ai { position: relative; }
+.tab-ai .ico {
+  width: 48px; height: 48px; margin: -26px auto 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #4f6ef7, #7c5cfc);
+  color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .5px;
+  font-style: italic;
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(79, 110, 247, .45), 0 0 0 4px #fff;
+  line-height: 1;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.tab-ai:active .ico { transform: scale(.92); }
+.tab-ai.active .ico {
+  box-shadow: 0 6px 18px rgba(79, 110, 247, .6), 0 0 0 4px #fff, 0 0 0 7px rgba(79, 110, 247, .15);
+}
 
 /* cards */
 .card {

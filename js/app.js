@@ -1,8 +1,8 @@
-// xcapp build 20260811-0940 v16 verurl
+// xcapp build 20260811-0955 v17 aibtn
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260811-0940 v16url';
+  var JS_BUILD = '20260811-0955 v17ai';
 
   var IS_NODE = typeof document === 'undefined';
 
@@ -695,9 +695,9 @@
     };
     el.innerHTML = NAV_TABS.map(function (t) {
       var active = state.tab === t.key || (t.key === 'home' && HOME_SUB_TABS.indexOf(state.tab) >= 0);
-      return '<div class="tab' + (active ? ' active' : '') + '" data-act="switchTab" data-key="' + t.key + '">' +
+      return '<div class="tab' + (t.key === 'ai' ? ' tab-ai' : '') + (active ? ' active' : '') + '" data-act="switchTab" data-key="' + t.key + '">' +
         '<span class="ico">' + (icons[t.key] || '·') + '</span>' +
-        t.name + '</div>';
+        (t.key === 'ai' ? '' : t.name) + '</div>';
     }).join('');
   }
 
