@@ -1,8 +1,8 @@
-// xcapp build 20260811-0930 v15 scratchbar
+// xcapp build 20260811-0940 v16 verurl
 (function () {
   'use strict';
 
-  var JS_BUILD = '20260811-0930 v15bar';
+  var JS_BUILD = '20260811-0940 v16url';
 
   var IS_NODE = typeof document === 'undefined';
 
