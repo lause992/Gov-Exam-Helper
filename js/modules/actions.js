@@ -279,9 +279,7 @@
           render();
           break;
         case "openAdd":
-          state.tab = "add";
-
-          /* ===== main/21-actions.js ===== */
+          openForm(null);
           render();
           break;
         case "switchTab":

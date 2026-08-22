@@ -1,4 +1,4 @@
 {
-  "version": 49,
-  "notes": "v49: 复盘完成回到详情页、左右滑动切换上下题、finishPractice/closePractice/返回键修复"
+  "version": 50,
+  "notes": "v50: 修复添加错题按钮无反应"
 }
