@@ -30,6 +30,14 @@
           closeCrop();
           return 1;
         }
+        if (state.practice) {
+          var bpId = state.practice.id;
+          state.practice = null;
+          state.scratch = false;
+          state.overlay = { type: 'detail', id: bpId };
+          render();
+          return 1;
+        }
         state.overlay = null;
         state.form = null;
         state.practice = null;

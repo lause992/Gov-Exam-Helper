@@ -711,6 +711,12 @@
           break;
         case "noop":
           break;
+        case "summaryUndo":
+          if (state.summaryEngine && state.summaryEngine.undo()) {
+            state.summaryDirty = true;
+            NS.summary.autoSaveSummaryCur();
+          }
+          break;
         case "summaryErase":
           state.summaryErase = !state.summaryErase;
           if (state.summaryEngine)
@@ -729,9 +735,14 @@
           }
           break;
         case "closePractice":
+          var closePracticeId = state.practice ? state.practice.id : null;
           state.practice = null;
-          state.overlay = null;
           state.scratch = false;
+          if (closePracticeId) {
+            state.overlay = { type: "detail", id: closePracticeId };
+          } else {
+            state.overlay = null;
+          }
           if (state.tab === "add") state.tab = "bank";
           render();
           break;
@@ -780,8 +791,18 @@
           break;
         case "toggleScratch":
           state.scratch = !state.scratch;
-          state.keepScroll = true;
-          render();
+          var slEl = document.getElementById("scratch-layer");
+          if (slEl) {
+            slEl.style.display = state.scratch ? "" : "none";
+            if (state.scratch) NS.scratch.initScratch();
+          }
+          var penBtn = el && el.closest(".overlay-head")
+            ? el
+            : document.querySelector('[data-act="toggleScratch"]');
+          if (penBtn) {
+            penBtn.textContent = state.scratch ? "✓" : "✏";
+            penBtn.classList.toggle("on", state.scratch);
+          }
           break;
         case "scratchUndo":
           if (state.scratchHistory && state.scratchHistory.length) {

@@ -28,6 +28,7 @@
   function renderDetail() { return NS.detail.renderDetail(); }
   function renderCrop() { return NS.crop.renderCrop(); }
   function renderNewsDetail() { return NS.news.renderNewsDetail(); }
+  function swipeDetailId(c, d) { return NS.detail.swipeDetailId(c, d); }
   function renderNewsSaved() { return NS.news.renderNewsSaved(); }
   function renderLeaderDetail() { return NS.news.renderLeaderDetail(); }
   function renderShenlunInk() { return NS.shenlunCompare.renderShenlunInk(); }
@@ -48,7 +49,7 @@
   // === 模块代码 ===
   function renderHeader() {
     var el = $('#app-header');
-    if (state.overlay) { el.innerHTML = ''; return; }
+    if (state.overlay) return;
     var pending = state.questions.filter(function (q) { return q.status === 'pending'; }).length;
     var todayDue = state.questions.filter(function (q) { return q.status === 'pending' && q.reviewDate <= todayStr(); }).length;
     var titles = { home: '首页', review: '今日复盘', bank: '错题本', add: '添加错题', calc: '速算练习', idiom: '成语积累', ai: 'AI 问答', news: '每日时政', stats: '统计' };
@@ -64,33 +65,35 @@
       stats: '学习情况一目了然'
     };
     var back = HOME_SUB_TABS.indexOf(state.tab) >= 0
-      ? '<span class="header-back" data-act="goHome">‹</span>'
+      ? '<span class="header-back" data-act="goHome">&#8249;</span>'
       : '';
     var right = '';
     if (state.tab === 'home' && state.homeNews) {
       right = '<div class="header-news" data-act="switchTab" data-key="news" title="点击查看时政要闻">时政 · ' + esc(state.homeNews.title) + '</div>';
     } else if (state.tab === 'bank') {
-      right = '<div class="header-pen" data-act="openSettings" title="复盘设置">⚙</div>';
+      right = '<div class="header-pen" data-act="openSettings" title="复盘设置">&#9881;</div>';
     }
-    el.innerHTML = back +
+    var html = back +
       '<div class="header-title"><h1>' + (titles[state.tab] || '公考小助手') + '</h1>' +
       '<div class="sub">' + (subs[state.tab] || '') + '</div></div>' + right;
+    if (el.innerHTML !== html) el.innerHTML = html;
   }
 
   function renderTabbar() {
     var el = $('#tabbar');
-    if (state.overlay) { el.innerHTML = ''; return; }
+    if (state.overlay) return;
     var icons = {
       home: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
       ai: 'AI',
       stats: '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>'
     };
-    el.innerHTML = NAV_TABS.map(function (t) {
+    var html = NAV_TABS.map(function (t) {
       var active = state.tab === t.key || (t.key === 'home' && HOME_SUB_TABS.indexOf(state.tab) >= 0);
       return '<div class="tab' + (t.key === 'ai' ? ' tab-ai' : '') + (active ? ' active' : '') + '" data-act="switchTab" data-key="' + t.key + '">' +
-        '<span class="ico">' + (icons[t.key] || '·') + '</span>' +
+        '<span class="ico">' + (icons[t.key] || '\u00b7') + '</span>' +
         (t.key === 'ai' ? '' : t.name) + '</div>';
     }).join('');
+    if (el.innerHTML !== html) el.innerHTML = html;
   }
 
   function captureActiveInput() {
@@ -117,78 +120,131 @@
     try { if (el.setSelectionRange) el.setSelectionRange(info.end, info.end); } catch (e) { /* ignore */ }
   }
 
+  function buildMainHtml() {
+    if (state.tab === 'home') return renderHome();
+    if (state.tab === 'review') return renderReview();
+    if (state.tab === 'bank' || state.tab === 'add') return renderBank();
+    if (state.tab === 'calc') return renderCalc();
+    if (state.tab === 'idiom') return renderIdiom();
+    if (state.tab === 'ai') return renderAi();
+    if (state.tab === 'news') return renderNews();
+    if (state.tab === 'stats') return renderStats();
+    return '';
+  }
+
   function render() {
     var content = $('#content');
+    var overlayRoot = $('#overlay-root');
     var activeInfo = captureActiveInput();
     var keep = state.keepScroll;
+    var wasOverlay = overlayRoot && overlayRoot.classList.contains('active');
     var prevScroll = 0;
     if (keep) {
-      var ob = $('.overlay-body', content);
+      var ob = $('.overlay-body', overlayRoot || content);
       if (ob) prevScroll = ob.scrollTop;
     }
     state.keepScroll = false;
-    renderHeader();
-    renderTabbar();
+
     if (state.overlay) {
-      content.innerHTML = renderOverlay();
-    } else if (state.tab === 'home') {
-      content.innerHTML = renderHome();
-    } else if (state.tab === 'review') {
-      content.innerHTML = renderReview();
-    } else if (state.tab === 'bank') {
-      content.innerHTML = renderBank();
-    } else if (state.tab === 'add') {
-      if (!state.overlay) {
+      var overlayHtml = '';
+      if (state.tab === 'add' && state.overlay.type === 'form' && !state.form) {
         state.form = freshForm(null);
-        state.overlay = { type: 'form' };
       }
-      content.innerHTML = renderForm();
-    } else if (state.tab === 'calc') {
-      content.innerHTML = renderCalc();
-    } else if (state.tab === 'idiom') {
-      content.innerHTML = renderIdiom();
-    } else if (state.tab === 'ai') {
-      content.innerHTML = renderAi();
-      aiScrollBottom($('#ai-msgs'));
-    } else if (state.tab === 'news') {
-      content.innerHTML = renderNews();
-    } else if (state.tab === 'stats') {
-      content.innerHTML = renderStats();
-    }
-    content.scrollTop = 0;
-    if (keep) {
-      var ob2 = $('.overlay-body', content);
-      if (ob2) ob2.scrollTop = prevScroll;
-      else if (state.listScroll) {
+      overlayHtml = renderOverlay();
+      if (overlayRoot) {
+        if (overlayRoot.innerHTML !== overlayHtml) {
+          overlayRoot.innerHTML = overlayHtml;
+          state._detailSwipeBound = false;
+          if (wasOverlay) {
+            var ov = overlayRoot.querySelector('.overlay');
+            if (ov) ov.classList.add('no-anim');
+          }
+        }
+        overlayRoot.classList.add('active');
+      }
+      if (keep) {
+        var ob2 = $('.overlay-body', overlayRoot);
+        if (ob2) ob2.scrollTop = prevScroll;
+      }
+      if (state.overlay.type === 'crop') initCrop();
+      if (state.formulaOpen && $('#formula-canvas')) initFormulaPad();
+      if (state.overlay.type === 'summary') initSummary();
+      if (state.overlay.type === 'practice' && state.scratch) {
+        if (!$('#scratch-layer') || $('#scratch-layer').style.display === 'none') {
+          initScratch();
+          var slEl2 = document.getElementById('scratch-layer');
+          if (slEl2) slEl2.style.display = '';
+        }
+      }
+      if (state.overlay.type === 'detail' && !state._detailSwipeBound) {
+        var ovEl = overlayRoot.querySelector('.overlay');
+        if (ovEl) {
+          var sx = 0, sy = 0, swiped = false;
+          ovEl.addEventListener('touchstart', function (e) {
+            if (e.touches.length !== 1) return;
+            sx = e.touches[0].clientX;
+            sy = e.touches[0].clientY;
+            swiped = false;
+          }, { passive: true });
+          ovEl.addEventListener('touchmove', function (e) {
+            if (swiped || e.touches.length !== 1) return;
+            var dx = e.touches[0].clientX - sx;
+            var dy = e.touches[0].clientY - sy;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+              swiped = true;
+              var dir = dx < 0 ? 'next' : 'prev';
+              var curId = state.overlay && state.overlay.id;
+              if (curId) {
+                var nextId = swipeDetailId(curId, dir);
+                if (nextId) {
+                  state.detailSwipeDir = dir;
+                  state.overlay = { type: 'detail', id: nextId };
+                  render();
+                }
+              }
+            }
+          }, { passive: true });
+        }
+        state._detailSwipeBound = true;
+      }
+      if (state.overlay.type === 'practice' && $('#shenlun-canvas') && !state._shenlunInited) {
+        initShenlunCanvas();
+        state._shenlunInited = true;
+      }
+      if (state.overlay.type === 'practice' && $('#p-note')) {
+        var wcEl = $('#word-count');
+        var noteInput = $('#p-note');
+        if (wcEl && noteInput) {
+          var pq = findQ(state.practice && state.practice.id);
+          wcEl.textContent = noteInput.value.length + '/' + extractMaxChars(pq);
+          noteInput.addEventListener('input', function () {
+            var maxC = extractMaxChars(pq);
+            var len = noteInput.value.length;
+            wcEl.textContent = len + '/' + maxC;
+            if (len > maxC) wcEl.style.color = 'var(--danger)';
+            else wcEl.style.color = 'var(--muted)';
+          });
+        }
+      }
+    } else {
+      renderHeader();
+      renderTabbar();
+      if (overlayRoot) {
+        overlayRoot.classList.remove('active');
+        if (overlayRoot.innerHTML) overlayRoot.innerHTML = '';
+      }
+      content.style.display = '';
+      var mainHtml = buildMainHtml();
+      if (content.innerHTML !== mainHtml) {
+        content.innerHTML = mainHtml;
+      }
+      content.scrollTop = 0;
+      if (keep && state.listScroll) {
         content.scrollTop = state.listScroll;
         state.listScroll = 0;
       }
-    }
-    if (state.overlay && state.overlay.type === 'crop') initCrop();
-    if (state.formulaOpen && $('#formula-canvas')) initFormulaPad();
-    if (state.overlay && state.overlay.type === 'summary') initSummary();
-    if (state.tab === 'bank') initFab();
-    if (state.overlay && state.overlay.type === 'practice' && state.scratch) {
-      content.insertAdjacentHTML('beforeend', renderScratch());
-      initScratch();
-    }
-    if (state.overlay && state.overlay.type === 'practice' && $('#shenlun-canvas')) {
-      initShenlunCanvas();
-    }
-    if (state.overlay && state.overlay.type === 'practice' && $('#p-note')) {
-      var wcEl = $('#word-count');
-      var noteInput = $('#p-note');
-      if (wcEl && noteInput) {
-        var pq = findQ(state.practice && state.practice.id);
-        wcEl.textContent = noteInput.value.length + '/' + extractMaxChars(pq);
-        noteInput.addEventListener('input', function () {
-          var maxC = extractMaxChars(pq);
-          var len = noteInput.value.length;
-          wcEl.textContent = len + '/' + maxC;
-          if (len > maxC) wcEl.style.color = 'var(--danger)';
-          else wcEl.style.color = 'var(--muted)';
-        });
-      }
+      if (state.tab === 'ai') aiScrollBottom($('#ai-msgs'));
+      if (state.tab === 'bank') initFab();
     }
     restoreActiveInput(activeInfo);
   }

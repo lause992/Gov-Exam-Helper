@@ -38,7 +38,8 @@
       { key: 'stats', name: '统计' }
     ],
     HOME_SUB_TABS: ['review', 'bank', 'add', 'calc', 'idiom', 'news'],
-    IMG_KEY_PREFIX: 'xcapp_img_'
+    IMG_KEY_PREFIX: 'xcapp_img_',
+    WEEKDAY_NAMES: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
   };
   NS.consts.UNIT_LIST = (NS.units && NS.units.LIST) || [];
 

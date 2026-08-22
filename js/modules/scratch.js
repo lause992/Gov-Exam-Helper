@@ -42,7 +42,7 @@
   function renderScratch() {
     var isErase = state.scratchTool === 'eraser';
     var colors = [['#1f2430', '黑'], ['#d32f2f', '红'], ['#1565c0', '蓝']];
-    var html = '<div class="scratch-layer" id="scratch-layer">' +
+    var html = '<div class="scratch-layer" id="scratch-layer" style="' + (state.scratch ? '' : 'display:none') + '">' +
       '<div class="scratch-bar">' +
       '<span class="scratch-colors">' +
       colors.map(function (c) {

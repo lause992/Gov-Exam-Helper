@@ -59,7 +59,7 @@
   var imgKey = NS.store.imgKey,
     qImagesPayload = NS.store.qImagesPayload,
     persistDirtyImages = NS.store.persistDirtyImages;
-  var WEEKDAY_NAMES = NS.constants.WEEKDAY_NAMES;
+  var WEEKDAY_NAMES = NS.consts.WEEKDAY_NAMES;
   var COMPARE_INSTS =
     (NS.shenlunCompare && NS.shenlunCompare.COMPARE_INSTS) || [];
 
@@ -740,6 +740,7 @@
     }
     html += "</div>";
     html += "</div>";
+    html += NS.scratch.renderScratch();
     return html;
   }
 
@@ -1211,6 +1212,32 @@
     );
   }
 
+  function finishPractice() {
+    var p = state.practice;
+    if (!p) return;
+    var q = findQ(p.id);
+    if (!q) { state.overlay = null; render(); return; }
+    var retryInput = document.getElementById("p-retry-days");
+    var retryDays = retryInput ? parseInt(retryInput.value, 10) : 3;
+    if (!retryDays || retryDays < 1) retryDays = 3;
+    var againCb = document.getElementById("p-again");
+    var again = againCb ? againCb.checked : p.again;
+    if (again) {
+      q.status = "pending";
+      q.reviewDate = addDays(todayStr(), retryDays);
+      q.reviewWeekday = 0;
+    } else {
+      q.status = "done";
+    }
+    q.rounds = (q.rounds || 0) + 1;
+    q.updatedAt = Date.now();
+    save();
+    state.practice = null;
+    state.overlay = { type: "detail", id: p.id };
+    render();
+    toast(again ? retryDays + " 天后再次复盘" : "已完成复盘");
+  }
+
   async function del(id) {
     var q = findQ(id);
     if (!q) return;
@@ -1398,6 +1425,7 @@
     var filterDone = state.filterDone || "all";
     var kw = String(state.search || "").trim();
     var queue = state.questions.filter(function (q) {
+      if (q.id === curId) return true;
       if (fromReview) return q.status === "pending";
       if (filterDone === "undone" && q.status === "done") return false;
       if (filterDone === "done" && q.status !== "done") return false;
@@ -1475,6 +1503,7 @@
     ocrUpdate: ocrUpdate,
     swipeDetailId: swipeDetailId,
     submitPractice: submitPractice,
+    finishPractice: finishPractice,
     del: del,
     runOcr: runOcr,
     ocrExtractOptions: ocrExtractOptions,

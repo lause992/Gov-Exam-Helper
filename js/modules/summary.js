@@ -60,7 +60,7 @@
     qImagesPayload = NS.store.qImagesPayload,
     persistDirtyImages = NS.store.persistDirtyImages;
   var XCAPP = NS;
-  var WEEKDAY_NAMES = NS.constants.WEEKDAY_NAMES;
+  var WEEKDAY_NAMES = NS.consts.WEEKDAY_NAMES;
 
   // === 跨模块引用（运行时通过 NS 解析，避免加载顺序耦合） ===
   function render() {
@@ -118,6 +118,7 @@
     html += '<div class="card">';
     html +=
       '<div class="formula-tools">' +
+      '<span class="chip" data-act="summaryUndo">\u21a9 \u64a4\u56de</span>' +
       '<span class="chip' +
       (state.summaryErase ? " active" : "") +
       '" data-act="summaryErase">\u6a61\u76ae</span>' +

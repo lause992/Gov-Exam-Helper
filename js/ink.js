@@ -32,6 +32,8 @@
   function create(canvas, opts) {
     opts = opts || {};
     var dpr = window.devicePixelRatio || 1;
+    var ctxW = canvas.width / dpr;
+    var ctxH = canvas.height / dpr;
     var state = {
       drawing: false,
       lastX: 0,
@@ -42,8 +44,15 @@
       color: opts.color || '#1f2430'
     };
     var ctx = canvas.getContext('2d');
-    var w = canvas.width / dpr;
-    var h = canvas.height / dpr;
+    var hist = [];
+    var HIST_MAX = 40;
+
+    function pushHist() {
+      try {
+        hist.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+        if (hist.length > HIST_MAX) hist.shift();
+      } catch (e) { /* ignore */ }
+    }
 
     function pos(e) {
       var r = canvas.getBoundingClientRect();
@@ -63,6 +72,7 @@
     canvas.addEventListener('pointerdown', function (e) {
       e.preventDefault();
       state.drawing = true;
+      pushHist();
       if (opts.onDown) opts.onDown(e);
       if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } }
       applyMode();
@@ -102,9 +112,17 @@
       clear: function () {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         state.erase = false;
-        grid(ctx, w, h);
+        grid(ctx, ctxW, ctxH);
+        hist = [];
       },
-      load: function (url) { loadInto(canvas, ctx, w, h, url); }
+      load: function (url) { loadInto(canvas, ctx, ctxW, ctxH, url); hist = []; },
+      undo: function () {
+        if (!hist.length) return false;
+        var img = hist.pop();
+        ctx.putImageData(img, 0, 0);
+        return true;
+      },
+      canUndo: function () { return hist.length > 0; }
     };
   }
 

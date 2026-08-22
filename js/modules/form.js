@@ -29,7 +29,7 @@
   var saveNewsSummaries = NS.store.saveNewsSummaries, saveSummaries = NS.store.saveSummaries;
   var compressQuestionsImages = NS.store.compressQuestionsImages, markImgDirty = NS.store.markImgDirty;
   var imgKey = NS.store.imgKey, qImagesPayload = NS.store.qImagesPayload, persistDirtyImages = NS.store.persistDirtyImages;
-  var WEEKDAY_NAMES = NS.constants.WEEKDAY_NAMES;
+  var WEEKDAY_NAMES = NS.consts.WEEKDAY_NAMES;
   var JS_BUILD = NS.JS_BUILD;
 
   // === 跨模块引用（运行时通过 NS 解析，避免加载顺序耦合） ===
