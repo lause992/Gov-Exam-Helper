@@ -1,4 +1,4 @@
 {
-  "version": 50,
-  "notes": "v50: 热更新链路诊断实验,验证版本检查/下载/缓存/覆盖全链路"
+  "version": 51,
+  "notes": "v51: 复盘记录写入reviewHistory、申论AI批改评分"
 }

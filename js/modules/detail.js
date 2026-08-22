@@ -1229,6 +1229,47 @@
     } else {
       q.status = "done";
     }
+    if (!q.reviewHistory) q.reviewHistory = [];
+    var noteInput = document.getElementById("p-note");
+    var note = noteInput ? noteInput.value.trim() : "";
+    if (q.category === "申论") {
+      var inkData = captureShenlunInk();
+      if (inkData) {
+        if (!q.reviewInk) q.reviewInk = [];
+        q.reviewInk.push({ ink: inkData, date: todayStr() });
+      }
+      if (note) {
+        state.shenlunScoring = true;
+        render();
+        scoreShenlunAnswer(q, note).then(function (result) {
+          state.shenlunScoring = false;
+          var scoreMatch = (result || "").match(/(\d+)\s*(?:\/\s*\d+|分)/);
+          var score = scoreMatch ? scoreMatch[1] + "分" : "";
+          q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: score, aiResult: result });
+          q.rounds = (q.rounds || 0) + 1;
+          q.updatedAt = Date.now();
+          save();
+          state.practice = null;
+          state.overlay = { type: "detail", id: p.id };
+          render();
+          toast("AI 评分完成：" + (score || "已评分"));
+        }).catch(function () {
+          state.shenlunScoring = false;
+          q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: "" });
+          q.rounds = (q.rounds || 0) + 1;
+          q.updatedAt = Date.now();
+          save();
+          state.practice = null;
+          state.overlay = { type: "detail", id: p.id };
+          render();
+          toast("AI 评分失败，已记录复盘");
+        });
+        return;
+      }
+      q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: "" });
+    } else {
+      q.reviewHistory.push({ date: todayStr(), correct: !!p.again === false, answer: note });
+    }
     q.rounds = (q.rounds || 0) + 1;
     q.updatedAt = Date.now();
     save();
