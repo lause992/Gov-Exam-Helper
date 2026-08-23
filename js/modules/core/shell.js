@@ -461,6 +461,7 @@
     if (!vp || !state._avatarEditor) return;
     var ed = state._avatarEditor;
     var startX = 0, startY = 0, startEdX = 0, startEdY = 0, dragging = false;
+    var lastDist = 0;
 
     function onStart(cx, cy) {
       dragging = true;
@@ -473,65 +474,62 @@
       if (!dragging) return;
       ed.x = startEdX + (cx - startX);
       ed.y = startEdY + (cy - startY);
-      renderAvatarEditor();
+      var img = vp.querySelector('img');
+      if (img) img.style.transform = 'translate(' + ed.x + 'px,' + ed.y + 'px) scale(' + ed.scale + ')';
     }
     function onEnd() { dragging = false; }
 
-    // Touch events
+    function applyTransform() {
+      var img = vp.querySelector('img');
+      if (img) img.style.transform = 'translate(' + ed.x + 'px,' + ed.y + 'px) scale(' + ed.scale + ')';
+    }
+
     vp.addEventListener('touchstart', function (e) {
       if (e.touches.length === 1) {
         e.preventDefault();
         onStart(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
-    vp.addEventListener('touchmove', function (e) {
-      if (e.touches.length === 1) {
-        e.preventDefault();
-        onMove(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: false });
-    vp.addEventListener('touchend', onEnd);
-
-    // Mouse events
-    vp.addEventListener('mousedown', function (e) {
-      e.preventDefault();
-      onStart(e.clientX, e.clientY);
-    });
-    document.addEventListener('mousemove', function (e) {
-      onMove(e.clientX, e.clientY);
-    });
-    document.addEventListener('mouseup', onEnd);
-
-    // Pinch to zoom
-    var lastDist = 0;
-    vp.addEventListener('touchstart', function (e) {
-      if (e.touches.length === 2) {
+      } else if (e.touches.length === 2) {
         var dx = e.touches[0].clientX - e.touches[1].clientX;
         var dy = e.touches[0].clientY - e.touches[1].clientY;
         lastDist = Math.sqrt(dx * dx + dy * dy);
       }
-    }, { passive: true });
+    }, { passive: false });
+
     vp.addEventListener('touchmove', function (e) {
-      if (e.touches.length === 2) {
+      if (e.touches.length === 1 && dragging) {
+        e.preventDefault();
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+      } else if (e.touches.length === 2) {
+        e.preventDefault();
         var dx = e.touches[0].clientX - e.touches[1].clientX;
         var dy = e.touches[0].clientY - e.touches[1].clientY;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (lastDist > 0) {
           var ratio = dist / lastDist;
           ed.scale = Math.min(5, Math.max(0.5, ed.scale * ratio));
-          renderAvatarEditor();
+          applyTransform();
         }
         lastDist = dist;
       }
-    }, { passive: true });
-    vp.addEventListener('touchend', function () { lastDist = 0; });
+    }, { passive: false });
 
-    // Mouse wheel to zoom
+    vp.addEventListener('touchend', function () { dragging = false; lastDist = 0; });
+
+    vp.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      onStart(e.clientX, e.clientY);
+    });
+    vp.addEventListener('mousemove', function (e) {
+      onMove(e.clientX, e.clientY);
+    });
+    vp.addEventListener('mouseup', onEnd);
+    vp.addEventListener('mouseleave', onEnd);
+
     vp.addEventListener('wheel', function (e) {
       e.preventDefault();
       var delta = e.deltaY > 0 ? -0.1 : 0.1;
       ed.scale = Math.min(5, Math.max(0.5, ed.scale + delta));
-      renderAvatarEditor();
+      applyTransform();
     }, { passive: false });
   }
 

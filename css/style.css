@@ -2306,6 +2306,10 @@ body.dark .login-form input {
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  cursor: grab;
+}
+.avatar-editor-viewport:active {
+  cursor: grabbing;
 }
 .avatar-editor-circle {
   position: absolute;
