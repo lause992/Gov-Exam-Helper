@@ -15,28 +15,32 @@
   <nav id="tabbar"></nav>
 </div>
 <div id="toast-box"></div>
-<script src="js/core.js?v=54"></script>
-<script src="js/units.js?v=54"></script>
-<script src="js/ink.js?v=54"></script>
-<!-- 模块化拆分：按依赖顺序加载 -->
-<script src="js/modules/state.js?v=54"></script>
-<script src="js/modules/storage.js?v=54"></script>
-<script src="js/modules/file-io.js?v=54"></script>
-<script src="js/modules/crop.js?v=54"></script>
-<script src="js/modules/scratch.js?v=54"></script>
-<script src="js/modules/shenlun-canvas.js?v=54"></script>
-<script src="js/modules/stats.js?v=54"></script>
-<script src="js/modules/calc.js?v=54"></script>
-<script src="js/modules/idiom.js?v=54"></script>
-<script src="js/modules/ai.js?v=54"></script>
-<script src="js/modules/shenlun-compare.js?v=54"></script>
-<script src="js/modules/news.js?v=54"></script>
-<script src="js/modules/summary.js?v=54"></script>
-<script src="js/modules/form.js?v=54"></script>
-<script src="js/modules/detail.js?v=54"></script>
-<script src="js/modules/home.js?v=54"></script>
-<script src="js/modules/shell.js?v=54"></script>
-<script src="js/modules/actions.js?v=54"></script>
-<script src="js/modules/app.js?v=54"></script>
+<script src="js/core.js?v=65"></script>
+<script src="js/units.js?v=65"></script>
+<script src="js/ink.js?v=65"></script>
+<!-- 模块化拆分：按功能模块分组 -->
+<!-- core: 核心框架 -->
+<script src="js/modules/core/state.js?v=65"></script>
+<script src="js/modules/core/storage.js?v=65"></script>
+<script src="js/modules/core/shell.js?v=65"></script>
+<script src="js/modules/core/actions.js?v=65"></script>
+<script src="js/modules/core/app.js?v=65"></script>
+<!-- bank: 错题本 -->
+<script src="js/modules/bank/file-io.js?v=65"></script>
+<script src="js/modules/bank/crop.js?v=65"></script>
+<script src="js/modules/bank/form.js?v=65"></script>
+<script src="js/modules/bank/detail.js?v=65"></script>
+<!-- practice: 复盘练习 -->
+<script src="js/modules/practice/summary.js?v=65"></script>
+<script src="js/modules/practice/shenlun-canvas.js?v=65"></script>
+<script src="js/modules/practice/shenlun-compare.js?v=65"></script>
+<!-- feature modules -->
+<script src="js/modules/scratch/scratch.js?v=65"></script>
+<script src="js/modules/stats/stats.js?v=65"></script>
+<script src="js/modules/calc/calc.js?v=65"></script>
+<script src="js/modules/idiom/idiom.js?v=65"></script>
+<script src="js/modules/ai/ai.js?v=65"></script>
+<script src="js/modules/news/news.js?v=65"></script>
+<script src="js/modules/home/home.js?v=65"></script>
 </body>
 </html>
