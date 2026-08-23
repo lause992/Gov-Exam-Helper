@@ -471,6 +471,7 @@ body {
 .ai-num { font-weight: 700; }
 .ai-quote { border-left: 3px solid var(--primary); padding: 2px 10px; margin: 4px 0; color: #5b6375; background: #f5f7fb; border-radius: 0 6px 6px 0; }
 .ai-inline { background: #eef1f7; border-radius: 4px; padding: 0 5px; font-family: Consolas, Menlo, monospace; font-size: 13px; }
+.ai-formula { background: #f0f7ff; border: 1px solid #d0e2f7; border-radius: 4px; padding: 0 6px; font-family: Consolas, Menlo, monospace; font-size: 13px; color: #1a5276; }
 .ai-code-block { display: block; background: #262d3a; color: #e8ebf3; padding: 10px 12px; border-radius: 8px; overflow-x: auto; font-family: Consolas, Menlo, monospace; font-size: 12.5px; line-height: 1.5; margin: 6px 0; white-space: pre-wrap; }
 .ai-pad { height: 6px; }
 

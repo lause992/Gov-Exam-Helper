@@ -232,9 +232,36 @@
       .replace(/\r?\n/g, '<br>');
   }
 
+  function latexToText(s) {
+    s = String(s);
+    s = s.replace(/\$\$/g, '');
+    s = s.replace(/\$/g, '');
+    s = s.replace(/\\frac\{(\d+)\}\{(\d+)\}/g, '$1/$2');
+    s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)');
+    s = s.replace(/\\sqrt\{([^}]+)\}/g, '√($1)');
+    s = s.replace(/\\times/g, '×');
+    s = s.replace(/\\div/g, '÷');
+    s = s.replace(/\\pm/g, '±');
+    s = s.replace(/\\le/g, '≤');
+    s = s.replace(/\\ge/g, '≥');
+    s = s.replace(/\\ne/g, '≠');
+    s = s.replace(/\\cdot/g, '·');
+    s = s.replace(/\\,/g, ' ');
+    s = s.replace(/\\;/g, ' ');
+    s = s.replace(/\\quad/g, '  ');
+    s = s.replace(/\\[a-zA-Z]+/g, '');
+    s = s.replace(/[{}]/g, '');
+    s = s.replace(/\^\{([^}]+)\}/g, '^$1');
+    s = s.replace(/\^(\w)/g, '^$1');
+    s = s.replace(/_\{([^}]+)\}/g, '_$1');
+    s = s.replace(/_(\w)/g, '_$1');
+    return s;
+  }
   function mdInline(s) {
     s = String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\$\$([\s\S]+?)\$\$/g, function (m, p) { return '<span class="ai-formula">' + latexToText(p) + '</span>'; })
+      .replace(/\$([^\n$]+?)\$/g, function (m, p) { return '<span class="ai-formula">' + latexToText(p) + '</span>'; })
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
       .replace(/`([^`]+)`/g, '<code class="ai-inline">$1</code>');
