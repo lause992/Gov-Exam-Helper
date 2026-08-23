@@ -344,6 +344,7 @@ body {
   z-index: 30;
   touch-action: none;
   user-select: none;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 .fab:active {
   transform: scale(0.94);
@@ -950,8 +951,6 @@ body.dark .opt {
   font-size: 34px;
   display: block;
   margin-bottom: 4px;
-  text-shadow: 0 2px 6px rgba(79,110,247,0.3);
-  color: var(--primary);
 }
 .pick-btns {
   display: flex;
