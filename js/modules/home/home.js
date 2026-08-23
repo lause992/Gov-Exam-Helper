@@ -101,16 +101,16 @@
     var html = "";
     html +=
       '<div class="stat-grid">' +
-      '<div class="stat-cell orange"><div class="num">' +
+      '<div class="stat-cell orange" data-act="jumpStat" data-v="pending"><div class="num">' +
       pending +
       '</div><div class="lbl">待复盘</div></div>' +
-      '<div class="stat-cell green"><div class="num">' +
+      '<div class="stat-cell green" data-act="jumpStat" data-v="done"><div class="num">' +
       done +
       '</div><div class="lbl">已复盘</div></div>' +
-      '<div class="stat-cell red"><div class="num">' +
+      '<div class="stat-cell red" data-act="jumpStat" data-v="dueToday"><div class="num">' +
       dueToday +
       '</div><div class="lbl">今日待复盘</div></div>' +
-      '<div class="stat-cell blue"><div class="num">' +
+      '<div class="stat-cell blue" data-act="jumpStat" data-v="idioms"><div class="num">' +
       idioms +
       '</div><div class="lbl">已积累词语</div></div>' +
       "</div>";

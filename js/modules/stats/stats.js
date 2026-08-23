@@ -95,16 +95,16 @@
 
     var html =
       '<div class="stat-grid">' +
-      '<div class="stat-cell blue"><div class="num">' +
+      '<div class="stat-cell blue" data-act="jumpStat" data-v="total"><div class="num">' +
       qs.length +
       '</div><div class="lbl">错题总数</div></div>' +
-      '<div class="stat-cell orange"><div class="num">' +
+      '<div class="stat-cell orange" data-act="jumpStat" data-v="pending"><div class="num">' +
       pending +
       '</div><div class="lbl">待复盘</div></div>' +
-      '<div class="stat-cell green"><div class="num">' +
+      '<div class="stat-cell green" data-act="jumpStat" data-v="done"><div class="num">' +
       rate +
       '%</div><div class="lbl">复盘完成率</div></div>' +
-      '<div class="stat-cell red"><div class="num">' +
+      '<div class="stat-cell red" data-act="jumpStat" data-v="dueToday"><div class="num">' +
       (overdue + dueToday) +
       '</div><div class="lbl">今天应复盘</div></div>' +
       "</div>";

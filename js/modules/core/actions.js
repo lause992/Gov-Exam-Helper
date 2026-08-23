@@ -782,6 +782,26 @@
           state.filterDone = el.getAttribute("data-v") || "undone";
           render();
           break;
+        case "jumpStat":
+          var jumpV = el.getAttribute("data-v");
+          if (jumpV === "idioms") {
+            state.tab = "idiom";
+          } else if (jumpV === "total") {
+            state.tab = "bank";
+            state.filterDone = "all";
+          } else if (jumpV === "pending") {
+            state.tab = "bank";
+            state.filterDone = "undone";
+          } else if (jumpV === "done") {
+            state.tab = "bank";
+            state.filterDone = "done";
+          } else if (jumpV === "dueToday") {
+            state.tab = "bank";
+            state.filterDone = "undone";
+            state.todayOnly = true;
+          }
+          render();
+          break;
         case "toggleFavOnly":
           state.favOnly = !state.favOnly;
           render();
