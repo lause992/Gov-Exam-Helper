@@ -469,19 +469,16 @@
     function clampPos() {
       var drawW = ed.naturalW * ed.scale;
       var drawH = ed.naturalH * ed.scale;
-      // 图片左上角在 viewport 中的位置
-      var imgL = vpSize / 2 + ed.x;
-      var imgT = vpSize / 2 + ed.y;
-      // 图片中心不能离开圆框（圆心 vpSize/2, vpSize/2）
-      // 约束：图片至少要覆盖圆心
-      var minL = vpSize / 2 - drawW + 10;
-      var maxL = vpSize / 2 - 10;
-      var minT = vpSize / 2 - drawH + 10;
-      var maxT = vpSize / 2 - 10;
-      if (imgL < minL) ed.x = minL - vpSize / 2;
-      if (imgL > maxL) ed.x = maxL - vpSize / 2;
-      if (imgT < minT) ed.y = minT - vpSize / 2;
-      if (imgT > maxT) ed.y = maxT - vpSize / 2;
+      // 图片左上角在 viewport 中: (vpSize/2 + x, vpSize/2 + y)
+      // 要求：图片必须完全覆盖 viewport 四边，不能露出背景
+      var minX = vpSize / 2 - drawW;
+      var maxX = 0;
+      var minY = vpSize / 2 - drawH;
+      var maxY = 0;
+      if (ed.x < minX) ed.x = minX;
+      if (ed.x > maxX) ed.x = maxX;
+      if (ed.y < minY) ed.y = minY;
+      if (ed.y > maxY) ed.y = maxY;
     }
 
     function onStart(cx, cy) {
