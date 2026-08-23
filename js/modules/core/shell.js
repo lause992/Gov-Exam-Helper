@@ -469,12 +469,17 @@
     function clampPos() {
       var drawW = ed.naturalW * ed.scale;
       var drawH = ed.naturalH * ed.scale;
-      // 图片左上角在 viewport 中: (vpSize/2 + x, vpSize/2 + y)
-      // 要求：图片必须完全覆盖 viewport 四边，不能露出背景
-      var minX = vpSize / 2 - drawW;
-      var maxX = 0;
-      var minY = vpSize / 2 - drawH;
-      var maxY = 0;
+      // 图片左上角 viewport 坐标: (vpSize/2 + x, vpSize/2 + y)
+      // 要求图片矩形完全覆盖 240x240 viewport:
+      //   vpSize/2 + x <= 0        → x <= -vpSize/2
+      //   vpSize/2 + y <= 0        → y <= -vpSize/2
+      //   vpSize/2 + x + drawW >= vpSize → x >= vpSize/2 - drawW
+      //   vpSize/2 + y + drawH >= vpSize → y >= vpSize/2 - drawH
+      var half = vpSize / 2;
+      var minX = half - drawW;
+      var maxX = -half;
+      var minY = half - drawH;
+      var maxY = -half;
       if (ed.x < minX) ed.x = minX;
       if (ed.x > maxX) ed.x = maxX;
       if (ed.y < minY) ed.y = minY;
