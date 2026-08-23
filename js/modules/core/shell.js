@@ -506,7 +506,7 @@
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (lastDist > 0) {
           var ratio = dist / lastDist;
-          ed.scale = Math.min(5, Math.max(0.5, ed.scale * ratio));
+          ed.scale = Math.min(5, Math.max(0.2, ed.scale * ratio));
           applyTransform();
         }
         lastDist = dist;
@@ -528,7 +528,7 @@
     vp.addEventListener('wheel', function (e) {
       e.preventDefault();
       var delta = e.deltaY > 0 ? -0.1 : 0.1;
-      ed.scale = Math.min(5, Math.max(0.5, ed.scale + delta));
+      ed.scale = Math.min(5, Math.max(0.2, ed.scale + delta));
       applyTransform();
     }, { passive: false });
   }

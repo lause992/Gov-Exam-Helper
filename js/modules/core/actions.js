@@ -81,9 +81,24 @@
 
   // === 头像编辑器 ===
   function openAvatarEditor(src) {
-    state._avatarEditor = { src: src, scale: 1, x: 0, y: 0 };
-    state.overlay = { type: 'avatarEditor' };
-    render();
+    var img = new Image();
+    img.onload = function () {
+      var vpSize = 240;
+      var initScale = Math.min(vpSize / img.width, vpSize / img.height, 1);
+      var drawW = img.width * initScale;
+      var drawH = img.height * initScale;
+      state._avatarEditor = {
+        src: src,
+        scale: initScale,
+        x: 0,
+        y: 0,
+        naturalW: img.width,
+        naturalH: img.height
+      };
+      state.overlay = { type: 'avatarEditor' };
+      render();
+    };
+    img.src = src;
   }
   function renderAvatarEditor() {
     var ed = state._avatarEditor;
@@ -97,25 +112,22 @@
   function saveAvatarFromEditor() {
     var ed = state._avatarEditor;
     if (!ed || !ed.src) return;
+    var vpSize = 240;
+    var cvSz = 400;
+    var ratio = cvSz / vpSize;
     var img = new Image();
     img.onload = function () {
-      var sz = 400;
       var cv = document.createElement('canvas');
-      cv.width = sz;
-      cv.height = sz;
+      cv.width = cvSz;
+      cv.height = cvSz;
       var ctx = cv.getContext('2d');
-      // 圆形裁剪
       ctx.beginPath();
-      ctx.arc(sz / 2, sz / 2, sz / 2, 0, Math.PI * 2);
+      ctx.arc(cvSz / 2, cvSz / 2, cvSz / 2, 0, Math.PI * 2);
       ctx.clip();
-      // 计算裁剪区域
-      var scale = ed.scale;
-      var dx = ed.x;
-      var dy = ed.y;
-      var drawW = img.width * scale;
-      var drawH = img.height * scale;
-      var offsetX = (sz - drawW) / 2 + dx * (sz / 200);
-      var offsetY = (sz - drawH) / 2 + dy * (sz / 200);
+      var drawW = img.width * ed.scale;
+      var drawH = img.height * ed.scale;
+      var offsetX = (cvSz - drawW) / 2 + ed.x * ratio;
+      var offsetY = (cvSz - drawH) / 2 + ed.y * ratio;
       ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
       NS.store.saveAvatar(cv.toDataURL('image/png', 0.85));
       state._avatarEditor = null;
@@ -391,21 +403,23 @@
           break;
         case "avatarZoomIn":
           if (state._avatarEditor) {
-            state._avatarEditor.scale = Math.min(5, state._avatarEditor.scale + 0.2);
+            state._avatarEditor.scale = Math.min(5, state._avatarEditor.scale * 1.25);
             renderAvatarEditor();
           }
           break;
         case "avatarZoomOut":
           if (state._avatarEditor) {
-            state._avatarEditor.scale = Math.max(0.5, state._avatarEditor.scale - 0.2);
+            state._avatarEditor.scale = Math.max(0.2, state._avatarEditor.scale * 0.8);
             renderAvatarEditor();
           }
           break;
         case "avatarReset":
           if (state._avatarEditor) {
-            state._avatarEditor.scale = 1;
-            state._avatarEditor.x = 0;
-            state._avatarEditor.y = 0;
+            var ed0 = state._avatarEditor;
+            var initS = Math.min(240 / ed0.naturalW, 240 / ed0.naturalH, 1);
+            ed0.scale = initS;
+            ed0.x = 0;
+            ed0.y = 0;
             renderAvatarEditor();
           }
           break;
