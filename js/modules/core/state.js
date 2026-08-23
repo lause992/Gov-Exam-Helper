@@ -8,7 +8,7 @@
   var NS = window.XCAPP = window.XCAPP || {};
 
   NS.IS_NODE = typeof document === 'undefined';
-  NS.JS_BUILD = '20260823-1534 v53';
+  NS.JS_BUILD = '20260824 v8.0';
 
   /* ===== 共享常量（原 core/01-constants.js） ===== */
   NS.consts = {
