@@ -56,6 +56,10 @@
   }
 
   // === 初始化 ===
+  // 恢复登录状态
+  if (NS.auth && NS.auth.currentUser()) {
+    state.user = NS.auth.currentUser();
+  }
   load();
   // load() 内已通过 applyDarkMode() 设置好 body.dark class;这里只在 IS_NODE 下兜底
   if (IS_NODE) document.body.classList.toggle("dark", state.darkMode);
