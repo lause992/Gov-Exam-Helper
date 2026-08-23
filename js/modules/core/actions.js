@@ -426,7 +426,8 @@
           break;
         case "avatarZoomOut":
           if (state._avatarEditor) {
-            state._avatarEditor.scale = Math.max(0.2, state._avatarEditor.scale * 0.8);
+            var fitMin = Math.min(state._avatarEditor.vpSize / state._avatarEditor.naturalW, state._avatarEditor.vpSize / state._avatarEditor.naturalH);
+            state._avatarEditor.scale = Math.max(fitMin, state._avatarEditor.scale * 0.8);
             renderAvatarEditor();
           }
           break;

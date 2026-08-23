@@ -463,6 +463,8 @@
     var startX = 0, startY = 0, startEdX = 0, startEdY = 0, dragging = false;
     var lastDist = 0;
 
+    var fitMin = Math.min(vpSize / ed.naturalW, vpSize / ed.naturalH);
+
     function onStart(cx, cy) {
       dragging = true;
       startX = cx;
@@ -506,7 +508,7 @@
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (lastDist > 0) {
           var ratio = dist / lastDist;
-          ed.scale = Math.min(5, Math.max(0.2, ed.scale * ratio));
+          ed.scale = Math.min(5, Math.max(fitMin, ed.scale * ratio));
           applyTransform();
         }
         lastDist = dist;
@@ -528,7 +530,7 @@
     vp.addEventListener('wheel', function (e) {
       e.preventDefault();
       var delta = e.deltaY > 0 ? -0.1 : 0.1;
-      ed.scale = Math.min(5, Math.max(0.2, ed.scale + delta));
+      ed.scale = Math.min(5, Math.max(fitMin, ed.scale + delta));
       applyTransform();
     }, { passive: false });
   }
