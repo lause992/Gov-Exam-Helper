@@ -120,13 +120,15 @@
 
     html += '<div class="section-title">分类统计</div><div class="card">';
     var max = 1;
-    CATEGORIES.forEach(function (c) {
-      var n = qs.filter(function (q) {
-        return q.category === c;
-      }).length;
+    var catsWithQs = CATEGORIES.filter(function (c) {
+      return qs.some(function (q) { return q.category === c; });
+    });
+    if (!catsWithQs.length) catsWithQs = CATEGORIES;
+    catsWithQs.forEach(function (c) {
+      var n = qs.filter(function (q) { return q.category === c; }).length;
       if (n > max) max = n;
     });
-    CATEGORIES.forEach(function (c) {
+    catsWithQs.forEach(function (c) {
       var arr = qs.filter(function (q) {
         return q.category === c;
       });
