@@ -123,7 +123,7 @@
       {
         key: "idiom",
         name: "成语积累",
-        cnt: idioms ? "已收藏 " + idioms + " 个" : "",
+        cnt: "",
         color: "pink",
       },
       { key: "news", name: "每日时政", cnt: "", color: "teal" },
