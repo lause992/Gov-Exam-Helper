@@ -1,1 +1,1 @@
-﻿{"version":65,"notes":"v65: modules按功能模块分组重构"}
+﻿{"version":66,"notes":"v66: 修复app.js加载顺序，首页恢复"}

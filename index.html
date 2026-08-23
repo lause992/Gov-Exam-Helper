@@ -19,12 +19,11 @@
 <script src="js/units.js?v=65"></script>
 <script src="js/ink.js?v=65"></script>
 <!-- 模块化拆分：按功能模块分组 -->
-<!-- core: 核心框架 -->
+<!-- core: 核心框架（state → storage → shell → actions） -->
 <script src="js/modules/core/state.js?v=65"></script>
 <script src="js/modules/core/storage.js?v=65"></script>
 <script src="js/modules/core/shell.js?v=65"></script>
 <script src="js/modules/core/actions.js?v=65"></script>
-<script src="js/modules/core/app.js?v=65"></script>
 <!-- bank: 错题本 -->
 <script src="js/modules/bank/file-io.js?v=65"></script>
 <script src="js/modules/bank/crop.js?v=65"></script>
@@ -42,5 +41,7 @@
 <script src="js/modules/ai/ai.js?v=65"></script>
 <script src="js/modules/news/news.js?v=65"></script>
 <script src="js/modules/home/home.js?v=65"></script>
+<!-- app: 最后加载，初始化时调用所有模块 -->
+<script src="js/modules/core/app.js?v=65"></script>
 </body>
 </html>
