@@ -950,6 +950,8 @@ body.dark .opt {
   font-size: 34px;
   display: block;
   margin-bottom: 4px;
+  text-shadow: 0 2px 6px rgba(79,110,247,0.3);
+  color: var(--primary);
 }
 .pick-btns {
   display: flex;
