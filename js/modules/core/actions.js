@@ -322,6 +322,40 @@
           state.tab = 'home';
           render();
           break;
+        case "changeAvatar":
+          var input = document.createElement('input');
+          input.type = 'file';
+          input.accept = 'image/*';
+          input.onchange = function () {
+            var file = input.files && input.files[0];
+            if (!file) return;
+            if (file.size > 512 * 1024) {
+              toast('图片大小不能超过 500KB');
+              return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (ev) {
+              var img = new Image();
+              img.onload = function () {
+                var cv = document.createElement('canvas');
+                var sz = 200;
+                cv.width = sz;
+                cv.height = sz;
+                var ctx = cv.getContext('2d');
+                var s = Math.min(img.width, img.height);
+                var sx = (img.width - s) / 2;
+                var sy = (img.height - s) / 2;
+                ctx.drawImage(img, sx, sy, s, s, 0, 0, sz, sz);
+                NS.store.saveAvatar(cv.toDataURL('image/png', 0.8));
+                render();
+                toast('头像已更新');
+              };
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          };
+          input.click();
+          break;
         case "openAdd":
           openForm(null);
           render();

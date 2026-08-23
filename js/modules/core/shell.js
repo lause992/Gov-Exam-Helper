@@ -129,7 +129,7 @@
       idiom: "成语积累",
       ai: "AI 问答",
       news: "每日时政",
-      stats: "统计",
+      stats: "个人中心",
     };
     var subs = {
       home: "公考学习助手",
@@ -140,7 +140,7 @@
       idiom: "已收藏 " + state.idiom.saved.length + " 个词语",
       ai: "常识问答 · 随问随答",
       news: "公务员考试时政要闻",
-      stats: "学习情况一目了然",
+      stats: "学习情况 · 账号管理",
     };
     var back =
       HOME_SUB_TABS.indexOf(state.tab) >= 0

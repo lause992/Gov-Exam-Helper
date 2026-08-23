@@ -146,6 +146,12 @@
     } catch (e) {
       state.compareCache = {};
     }
+    try {
+      var avatarRaw = storageGet(uKey('avatar'));
+      state.avatar = avatarRaw || '';
+    } catch (e) {
+      state.avatar = '';
+    }
     state.summaries = {};
     state.summaryNav = null;
     try {
@@ -322,6 +328,14 @@
         uKey('ai_history'),
         JSON.stringify(state.ai.history.slice(0, 50)),
       );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  function saveAvatar(dataUrl) {
+    try {
+      state.avatar = dataUrl || '';
+      storageSet(uKey('avatar'), state.avatar);
     } catch (e) {
       /* ignore */
     }
@@ -531,6 +545,7 @@
     saveCalcHistory: saveCalcHistory,
     saveIdioms: saveIdioms,
     saveAiHistory: saveAiHistory,
+    saveAvatar: saveAvatar,
     saveDarkMode: saveDarkMode,
     applyDarkMode: applyDarkMode,
     compressQuestionsImages: compressQuestionsImages,

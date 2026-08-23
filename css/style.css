@@ -2225,3 +2225,61 @@ body.dark .login-form input {
   border-color: var(--line);
   color: var(--text);
 }
+
+/* ===== 个人中心/头像 ===== */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  margin-bottom: 16px;
+}
+.avatar-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+}
+.avatar-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary);
+}
+.avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 700;
+  border: 3px solid var(--primary);
+}
+.avatar-edit {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--primary);
+  background: var(--card);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.avatar-wrap:hover .avatar-edit {
+  opacity: 1;
+}
+.profile-name {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}

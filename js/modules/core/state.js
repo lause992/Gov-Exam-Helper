@@ -36,7 +36,7 @@
     NAV_TABS: [
       { key: 'home', name: '首页' },
       { key: 'ai', name: 'AI' },
-      { key: 'stats', name: '统计' }
+      { key: 'stats', name: '个人中心' }
     ],
     HOME_SUB_TABS: ['review', 'bank', 'add', 'calc', 'idiom', 'news'],
     IMG_KEY_PREFIX: 'xcapp_img_',
@@ -49,6 +49,7 @@
     tab: 'home',
     overlay: null,
     user: '',
+    avatar: '',
     questions: [],
     search: '',
     filterCat: 'all',

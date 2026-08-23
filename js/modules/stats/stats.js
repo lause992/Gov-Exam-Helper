@@ -93,7 +93,16 @@
     }).length;
     var rate = qs.length ? Math.round((done / qs.length) * 100) : 0;
 
-    var html =
+    var avatarHtml = '<div class="profile-card">' +
+      '<div class="avatar-wrap" data-act="changeAvatar">' +
+      (state.avatar
+        ? '<img class="avatar-img" src="' + state.avatar + '" />'
+        : '<div class="avatar-placeholder">' + esc((state.user || '游').charAt(0)) + '</div>') +
+      '<div class="avatar-edit">点击更换</div>' +
+      '</div>' +
+      '<div class="profile-name">' + esc(state.user || '游客模式') + '</div>' +
+      '</div>';
+    html = avatarHtml + html;
       '<div class="stat-grid">' +
       '<div class="stat-cell blue" data-act="jumpStat" data-v="total"><div class="num">' +
       qs.length +
