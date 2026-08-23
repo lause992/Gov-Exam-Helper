@@ -661,8 +661,14 @@ body {
 }
 .formula-tools {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 10px;
+  align-items: center;
+}
+.formula-tools .chip,
+.formula-tools .btn {
+  flex: 0 0 auto;
 }
 .formula-wrap {
   background: var(--card);
