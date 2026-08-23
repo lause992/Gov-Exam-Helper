@@ -263,7 +263,7 @@ body {
   border: none;
   border-radius: 12px;
   padding: 12px 8px;
-  color: var(--tool-btn-color);
+  color: #fff;
   text-align: center;
   cursor: pointer;
   display: flex;

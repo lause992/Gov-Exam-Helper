@@ -1,1 +1,1 @@
-﻿{"version":55,"notes":"v55: 按钮样式优化 - tool-btn变量化、focus-visible状态、header-pen加大、触控target优化"}
+﻿{"version":56,"notes":"v56: 按钮文字颜色恢复#fff，防止浅色模式下显示黑色"}
