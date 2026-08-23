@@ -119,15 +119,10 @@
     html += renderTrend(qs);
 
     html += '<div class="section-title">分类统计</div><div class="card">';
-    var max = 1;
     var catsWithQs = CATEGORIES.filter(function (c) {
       return qs.some(function (q) { return q.category === c; });
     });
     if (!catsWithQs.length) catsWithQs = CATEGORIES;
-    catsWithQs.forEach(function (c) {
-      var n = qs.filter(function (q) { return q.category === c; }).length;
-      if (n > max) max = n;
-    });
     catsWithQs.forEach(function (c) {
       var arr = qs.filter(function (q) {
         return q.category === c;
@@ -135,13 +130,14 @@
       var d = arr.filter(function (q) {
         return q.status === "done";
       }).length;
+      var pct = arr.length ? Math.round((d / arr.length) * 100) : 0;
       html +=
         '<div class="cat-bar-row">' +
         '<span class="name">' +
         c +
         "</span>" +
         '<div class="bar-bg"><div class="bar" style="width:' +
-        Math.round((arr.length / max) * 100) +
+        pct +
         "%;background:" +
         CAT_COLORS[c] +
         '"></div></div>' +
