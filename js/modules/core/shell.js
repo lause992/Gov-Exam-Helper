@@ -356,6 +356,7 @@
         if (ob2) ob2.scrollTop = prevScroll;
       }
       if (state.overlay.type === "crop") initCrop();
+      if (state.overlay.type === "avatarEditor") initAvatarEditor();
       if (state.formulaOpen && $("#formula-canvas")) initFormulaPad();
       if (state.overlay.type === "summary") initSummary();
       if (state.overlay.type === "practice" && state.scratch) {
@@ -455,6 +456,85 @@
     restoreActiveInput(activeInfo);
   }
 
+  function initAvatarEditor() {
+    var vp = document.getElementById('avatar-editor-viewport');
+    if (!vp || !state._avatarEditor) return;
+    var ed = state._avatarEditor;
+    var startX = 0, startY = 0, startEdX = 0, startEdY = 0, dragging = false;
+
+    function onStart(cx, cy) {
+      dragging = true;
+      startX = cx;
+      startY = cy;
+      startEdX = ed.x;
+      startEdY = ed.y;
+    }
+    function onMove(cx, cy) {
+      if (!dragging) return;
+      ed.x = startEdX + (cx - startX);
+      ed.y = startEdY + (cy - startY);
+      renderAvatarEditor();
+    }
+    function onEnd() { dragging = false; }
+
+    // Touch events
+    vp.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+        onStart(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+    vp.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
+    vp.addEventListener('touchend', onEnd);
+
+    // Mouse events
+    vp.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      onStart(e.clientX, e.clientY);
+    });
+    document.addEventListener('mousemove', function (e) {
+      onMove(e.clientX, e.clientY);
+    });
+    document.addEventListener('mouseup', onEnd);
+
+    // Pinch to zoom
+    var lastDist = 0;
+    vp.addEventListener('touchstart', function (e) {
+      if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    }, { passive: true });
+    vp.addEventListener('touchmove', function (e) {
+      if (e.touches.length === 2) {
+        var dx = e.touches[0].clientX - e.touches[1].clientX;
+        var dy = e.touches[0].clientY - e.touches[1].clientY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (lastDist > 0) {
+          var ratio = dist / lastDist;
+          ed.scale = Math.min(5, Math.max(0.5, ed.scale * ratio));
+          renderAvatarEditor();
+        }
+        lastDist = dist;
+      }
+    }, { passive: true });
+    vp.addEventListener('touchend', function () { lastDist = 0; });
+
+    // Mouse wheel to zoom
+    vp.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var delta = e.deltaY > 0 ? -0.1 : 0.1;
+      ed.scale = Math.min(5, Math.max(0.5, ed.scale + delta));
+      renderAvatarEditor();
+    }, { passive: false });
+  }
+
   function renderOverlay() {
     var o = state.overlay;
     if (o.type === "form") return renderForm();
@@ -469,7 +549,34 @@
     if (o.type === "settings") return renderSettings();
     if (o.type === "summary") return renderSummary();
     if (o.type === "unit") return NS.units.render(state, state.unitCat);
+    if (o.type === "avatarEditor") return renderAvatarEditor();
     return "";
+  }
+
+  function renderAvatarEditor() {
+    var ed = state._avatarEditor;
+    if (!ed) return '';
+    return '<div class="overlay">' +
+      '<div class="overlay-head">' +
+      '<span class="back" data-act="avatarCancel">&times;</span>' +
+      '<div class="title">调整头像</div>' +
+      '</div>' +
+      '<div class="overlay-body avatar-editor-body">' +
+      '<div class="avatar-editor-hint">拖动图片调整位置，按钮调整大小</div>' +
+      '<div class="avatar-editor-viewport" id="avatar-editor-viewport">' +
+      '<div class="avatar-editor-circle"></div>' +
+      '<img src="' + ed.src + '" style="transform:translate(' + ed.x + 'px,' + ed.y + 'px) scale(' + ed.scale + ')" />' +
+      '</div>' +
+      '<div class="avatar-editor-controls">' +
+      '<button class="btn" data-act="avatarZoomOut">− 缩小</button>' +
+      '<button class="btn" data-act="avatarReset">重置</button>' +
+      '<button class="btn" data-act="avatarZoomIn">+ 放大</button>' +
+      '</div>' +
+      '<div class="avatar-editor-btns">' +
+      '<button class="btn" data-act="avatarCancel">取消</button>' +
+      '<button class="btn primary" data-act="avatarConfirm">确定</button>' +
+      '</div>' +
+      '</div></div>';
   }
 
   function catTag(cat, sub, cls) {

@@ -77,6 +77,53 @@
   }
   function statusTag(q) {
     return NS.shell.statusTag(q);
+
+  // === 头像编辑器 ===
+  function openAvatarEditor(src) {
+    state._avatarEditor = { src: src, scale: 1, x: 0, y: 0 };
+    state.overlay = { type: 'avatarEditor' };
+    render();
+  }
+  function renderAvatarEditor() {
+    var ed = state._avatarEditor;
+    if (!ed) return;
+    var wrap = document.getElementById('avatar-editor-viewport');
+    if (!wrap) return;
+    var img = wrap.querySelector('img');
+    if (!img) return;
+    img.style.transform = 'translate(' + ed.x + 'px,' + ed.y + 'px) scale(' + ed.scale + ')';
+  }
+  function saveAvatarFromEditor() {
+    var ed = state._avatarEditor;
+    if (!ed || !ed.src) return;
+    var img = new Image();
+    img.onload = function () {
+      var sz = 400;
+      var cv = document.createElement('canvas');
+      cv.width = sz;
+      cv.height = sz;
+      var ctx = cv.getContext('2d');
+      // 圆形裁剪
+      ctx.beginPath();
+      ctx.arc(sz / 2, sz / 2, sz / 2, 0, Math.PI * 2);
+      ctx.clip();
+      // 计算裁剪区域
+      var scale = ed.scale;
+      var dx = ed.x;
+      var dy = ed.y;
+      var drawW = img.width * scale;
+      var drawH = img.height * scale;
+      var offsetX = (sz - drawW) / 2 + dx * (sz / 200);
+      var offsetY = (sz - drawH) / 2 + dy * (sz / 200);
+      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+      NS.store.saveAvatar(cv.toDataURL('image/png', 0.85));
+      state._avatarEditor = null;
+      state.overlay = null;
+      render();
+      toast('头像已更新');
+    };
+    img.src = ed.src;
+  }
   }
   function initFab() {
     return NS.home.initFab();
@@ -329,32 +376,47 @@
           input.onchange = function () {
             var file = input.files && input.files[0];
             if (!file) return;
-            if (file.size > 512 * 1024) {
-              toast('图片大小不能超过 500KB');
+            if (file.size > 2 * 1024 * 1024) {
+              toast('图片大小不能超过 2MB');
               return;
             }
             var reader = new FileReader();
             reader.onload = function (ev) {
-              var img = new Image();
-              img.onload = function () {
-                var cv = document.createElement('canvas');
-                var sz = 200;
-                cv.width = sz;
-                cv.height = sz;
-                var ctx = cv.getContext('2d');
-                var s = Math.min(img.width, img.height);
-                var sx = (img.width - s) / 2;
-                var sy = (img.height - s) / 2;
-                ctx.drawImage(img, sx, sy, s, s, 0, 0, sz, sz);
-                NS.store.saveAvatar(cv.toDataURL('image/png', 0.8));
-                render();
-                toast('头像已更新');
-              };
-              img.src = ev.target.result;
+              openAvatarEditor(ev.target.result);
             };
             reader.readAsDataURL(file);
           };
           input.click();
+          break;
+        case "avatarZoomIn":
+          if (state._avatarEditor) {
+            state._avatarEditor.scale = Math.min(5, state._avatarEditor.scale + 0.2);
+            renderAvatarEditor();
+          }
+          break;
+        case "avatarZoomOut":
+          if (state._avatarEditor) {
+            state._avatarEditor.scale = Math.max(0.5, state._avatarEditor.scale - 0.2);
+            renderAvatarEditor();
+          }
+          break;
+        case "avatarReset":
+          if (state._avatarEditor) {
+            state._avatarEditor.scale = 1;
+            state._avatarEditor.x = 0;
+            state._avatarEditor.y = 0;
+            renderAvatarEditor();
+          }
+          break;
+        case "avatarConfirm":
+          if (state._avatarEditor) {
+            saveAvatarFromEditor();
+          }
+          break;
+        case "avatarCancel":
+          state._avatarEditor = null;
+          state.overlay = null;
+          render();
           break;
         case "openAdd":
           openForm(null);
