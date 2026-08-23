@@ -213,7 +213,7 @@
         html += '<div style="margin-top:10px">';
         q.options.forEach(function (opt, i) {
           html +=
-            '<div class="opt" style="cursor:default;background:#fff;border:none;padding:4px 0"><span class="key" style="width:22px;height:22px;font-size:12px">' +
+            '<div class="opt" style="cursor:default;border:none;padding:4px 0"><span class="key" style="width:22px;height:22px;font-size:12px">' +
             optionLetters[i] +
             '</span><span class="txt">' +
             optContentHtml(q, i, opt) +
@@ -280,7 +280,7 @@
         '<div class="formula-wrap"><canvas id="formula-canvas" style="touch-action:none"></canvas></div>';
     } else if (q.formulaImg) {
       html +=
-        '<div class="img-wrap" style="margin-top:8px;background:#fff"><img src="' +
+        '<div class="img-wrap" style="margin-top:8px"><img src="' +
         q.formulaImg +
         '" style="width:100%"></div>';
       html +=
