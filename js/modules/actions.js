@@ -430,6 +430,14 @@
           state.keepScroll = true;
           render();
           break;
+        case "filterBySub":
+          var subKey = el.getAttribute("data-sub") || "";
+          state.filterCat = subKey.split(" / ")[0] || "all";
+          state.filterSub = subKey.split(" / ")[1] || "";
+          state.tab = "bank";
+          state.keepScroll = true;
+          render();
+          break;
         case "aiAnalyze":
           if (state.aiAnalyzing) return;
           if (!(state.questions || []).length) {
