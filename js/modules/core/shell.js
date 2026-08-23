@@ -466,6 +466,24 @@
 
     var fitMin = Math.min(vpSize / ed.naturalW, vpSize / ed.naturalH);
 
+    function clampPos() {
+      var drawW = ed.naturalW * ed.scale;
+      var drawH = ed.naturalH * ed.scale;
+      // 图片左上角在 viewport 中的位置
+      var imgL = vpSize / 2 + ed.x;
+      var imgT = vpSize / 2 + ed.y;
+      // 图片中心不能离开圆框（圆心 vpSize/2, vpSize/2）
+      // 约束：图片至少要覆盖圆心
+      var minL = vpSize / 2 - drawW + 10;
+      var maxL = vpSize / 2 - 10;
+      var minT = vpSize / 2 - drawH + 10;
+      var maxT = vpSize / 2 - 10;
+      if (imgL < minL) ed.x = minL - vpSize / 2;
+      if (imgL > maxL) ed.x = maxL - vpSize / 2;
+      if (imgT < minT) ed.y = minT - vpSize / 2;
+      if (imgT > maxT) ed.y = maxT - vpSize / 2;
+    }
+
     function onStart(cx, cy) {
       dragging = true;
       startX = cx;
@@ -477,8 +495,8 @@
       if (!dragging) return;
       ed.x = startEdX + (cx - startX);
       ed.y = startEdY + (cy - startY);
-      var img = vp.querySelector('img');
-      if (img) img.style.transform = 'translate(' + ed.x + 'px,' + ed.y + 'px) scale(' + ed.scale + ')';
+      clampPos();
+      applyTransform();
     }
     function onEnd() { dragging = false; }
 
@@ -510,6 +528,7 @@
         if (lastDist > 0) {
           var ratio = dist / lastDist;
           ed.scale = Math.min(5, Math.max(fitMin, ed.scale * ratio));
+          clampPos();
           applyTransform();
         }
         lastDist = dist;
@@ -532,6 +551,7 @@
       e.preventDefault();
       var delta = e.deltaY > 0 ? -0.1 : 0.1;
       ed.scale = Math.min(5, Math.max(fitMin, ed.scale + delta));
+      clampPos();
       applyTransform();
     }, { passive: false });
   }
