@@ -1269,7 +1269,11 @@ body.dark .opt {
 
 .actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.actions:last-child {
+  margin-bottom: 0;
 }
 .actions .btn {
   flex: 1;
