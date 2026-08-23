@@ -125,7 +125,7 @@
     };
     img.src = ed.src;
   }
-  }
+
   function initFab() {
     return NS.home.initFab();
   }
