@@ -2129,3 +2129,99 @@ body.dark .prediction-card {
 body.dark .pred-bar { background: rgba(255,255,255,0.15); }
 body.dark .pred-bar-fill { background: rgba(255,255,255,0.9); }
 body.dark .pred-tag { background: rgba(255,255,255,0.15); }
+
+/* ===== 登录页 ===== */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 20px;
+}
+.login-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+.login-logo {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.login-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+}
+.login-form input:focus {
+  border-color: var(--primary);
+}
+.login-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.login-btns .btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--line);
+  color: var(--text);
+}
+.login-btns .btn.primary {
+  background: var(--primary);
+  color: #fff;
+}
+.login-msg {
+  font-size: 13px;
+  color: #ef4444;
+  min-height: 18px;
+  margin-top: 4px;
+}
+.login-users {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.login-guest {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.login-guest:hover {
+  color: var(--primary);
+}
+body.dark .login-form input {
+  background: var(--card);
+  border-color: var(--line);
+  color: var(--text);
+}

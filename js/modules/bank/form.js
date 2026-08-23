@@ -123,6 +123,17 @@
       html += '<p class="muted" style="font-size:13px">错题数据保存在网页本地存储（有大小上限），建议及时导出备份。</p>';
     }
     html += '</div>';
+    html += '<div class="card">';
+    html += '<div class="section-title" style="margin-top:0">账号</div>';
+    var curUser = NS.auth.currentUser();
+    if (curUser) {
+      html += '<p class="muted" style="font-size:13px">当前用户：' + esc(curUser) + '</p>';
+      html += '<button class="btn mt12" data-act="authLogout">退出登录</button>';
+    } else {
+      html += '<p class="muted" style="font-size:13px">当前为游客模式</p>';
+      html += '<button class="btn mt12" data-act="authLogout">登录账号</button>';
+    }
+    html += '</div>';
     html += '</div></div>';
     return html;
   }

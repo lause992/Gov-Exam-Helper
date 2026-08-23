@@ -48,6 +48,7 @@
   NS.state = {
     tab: 'home',
     overlay: null,
+    user: '',
     questions: [],
     search: '',
     filterCat: 'all',

@@ -3,6 +3,7 @@
  * 对外暴露 XCAPP.store，包含 load/save/findQ 及各类 saveXxx 函数。
  * 依赖：state.js（XCAPP.state）、core.js（XCAPP.utils/storage/bridge）。
  * 跨模块依赖（运行时解析）：shell.render / crop.openCrop 等。
+ * 支持多用户数据隔离：所有 key 自动加用户名前缀。
  */
 (function () {
   "use strict";
@@ -18,6 +19,34 @@
   var STORAGE_KEY = NS.consts.STORAGE_KEY;
   var IMG_KEY_PREFIX = NS.consts.IMG_KEY_PREFIX;
 
+  /* === 用户隔离：key 自动加前缀 === */
+  function userPrefix() {
+    var u = NS.auth && NS.auth.currentUser();
+    return u ? 'xcapp_u_' + u + '_' : 'xcapp_';
+  }
+  function uKey(key) {
+    return userPrefix() + key;
+  }
+  // 兼容旧 key（无用户前缀）
+  function migrateOldKeys() {
+    var u = NS.auth && NS.auth.currentUser();
+    if (!u) return;
+    var oldKeys = [
+      'xcapp_questions', 'xcapp_calc_history', 'xcapp_idioms',
+      'xcapp_ai_history', 'xcapp_fab_pos', 'xcapp_news_saved',
+      'xcapp_news_summaries', 'xcapp_settings', 'xcapp_sources',
+      'xcapp_shenlun_compare', 'xcapp_summaries', 'xcapp_summary_nav_pos',
+      'xcapp_dark_mode'
+    ];
+    var newPrefix = 'xcapp_u_' + u + '_';
+    oldKeys.forEach(function (k) {
+      var raw = localStorage.getItem(k);
+      if (raw && !localStorage.getItem(newPrefix + k.replace('xcapp_', ''))) {
+        localStorage.setItem(newPrefix + k.replace('xcapp_', ''), raw);
+      }
+    });
+  }
+
   /* === 跨模块引用（运行时通过 NS 解析，避免加载顺序耦合） === */
   function render() {
     return NS.shell.render();
@@ -30,8 +59,9 @@
   }
 
   function load() {
+    migrateOldKeys();
     try {
-      var raw = storageGet(STORAGE_KEY);
+      var raw = storageGet(uKey('questions'));
       state.questions = raw ? JSON.parse(raw) : [];
       var srcChanged = false;
       state.questions.forEach(function (q) {
@@ -45,43 +75,43 @@
       state.questions = [];
     }
     try {
-      var calcRaw = storageGet("xcapp_calc_history");
+      var calcRaw = storageGet(uKey('calc_history'));
       state.calc.history = calcRaw ? JSON.parse(calcRaw) : [];
     } catch (e) {
       state.calc.history = [];
     }
     try {
-      var idiomRaw = storageGet("xcapp_idioms");
+      var idiomRaw = storageGet(uKey('idioms'));
       state.idiom.saved = idiomRaw ? JSON.parse(idiomRaw) : [];
     } catch (e) {
       state.idiom.saved = [];
     }
     try {
-      var aiRaw = storageGet("xcapp_ai_history");
+      var aiRaw = storageGet(uKey('ai_history'));
       state.ai.history = aiRaw ? JSON.parse(aiRaw) : [];
     } catch (e) {
       state.ai.history = [];
     }
     try {
-      var fabRaw = storageGet("xcapp_fab_pos");
+      var fabRaw = storageGet(uKey('fab_pos'));
       state.fabPos = fabRaw ? JSON.parse(fabRaw) : null;
     } catch (e) {
       state.fabPos = null;
     }
     try {
-      var newsRaw = storageGet("xcapp_news_saved");
+      var newsRaw = storageGet(uKey('news_saved'));
       state.news.saved = newsRaw ? JSON.parse(newsRaw) : [];
     } catch (e) {
       state.news.saved = [];
     }
     try {
-      var sumRaw = storageGet("xcapp_news_summaries");
+      var sumRaw = storageGet(uKey('news_summaries'));
       state.news.summaries = sumRaw ? JSON.parse(sumRaw) : {};
     } catch (e) {
       state.news.summaries = {};
     }
     try {
-      var setRaw = storageGet("xcapp_settings");
+      var setRaw = storageGet(uKey('settings'));
       state.settings = setRaw
         ? JSON.parse(setRaw)
         : { reviewWeekday: 0, retryDays: 3 };
@@ -93,7 +123,7 @@
       state.settings = { reviewWeekday: 0, retryDays: 3 };
     }
     try {
-      var srcRaw = storageGet("xcapp_sources");
+      var srcRaw = storageGet(uKey('sources'));
       state.sourceHistory = srcRaw ? JSON.parse(srcRaw) : [];
       if (!Array.isArray(state.sourceHistory)) state.sourceHistory = [];
       var seen = {};
@@ -109,7 +139,7 @@
       state.sourceHistory = [];
     }
     try {
-      var cmpRaw = storageGet("xcapp_shenlun_compare");
+      var cmpRaw = storageGet(uKey('shenlun_compare'));
       state.compareCache = cmpRaw ? JSON.parse(cmpRaw) : {};
       if (!state.compareCache || typeof state.compareCache !== "object")
         state.compareCache = {};
@@ -119,7 +149,7 @@
     state.summaries = {};
     state.summaryNav = null;
     try {
-      var dmRaw = storageGet("xcapp_dark_mode");
+      var dmRaw = storageGet(uKey('dark_mode'));
       // 三态: 'light' / 'dark' / 'auto'(跟随系统);向下兼容旧的 '0'/'1' 布尔值
       if (dmRaw === "1" || dmRaw === "dark") state.darkModePref = "dark";
       else if (dmRaw === "0" || dmRaw === "light") state.darkModePref = "light";
@@ -139,7 +169,7 @@
     if (state._summariesLoaded) return;
     state._summariesLoaded = true;
     try {
-      var sumRaw2 = storageGet("xcapp_summaries");
+      var sumRaw2 = storageGet(uKey('summaries'));
       state.summaries = sumRaw2 ? JSON.parse(sumRaw2) : {};
       if (!state.summaries || typeof state.summaries !== "object")
         state.summaries = {};
@@ -156,7 +186,7 @@
       state.summaries = {};
     }
     try {
-      var navRaw = storageGet("xcapp_summary_nav_pos");
+      var navRaw = storageGet(uKey('summary_nav_pos'));
       state.summaryNav = navRaw ? JSON.parse(navRaw) : null;
       if (!state.summaryNav || typeof state.summaryNav !== "object")
         state.summaryNav = null;
@@ -230,7 +260,7 @@
   function saveSources() {
     try {
       storageSet(
-        "xcapp_sources",
+        uKey('sources'),
         JSON.stringify(state.sourceHistory.slice(0, 50)),
       );
     } catch (e) {
@@ -239,49 +269,49 @@
   }
   function saveSettings() {
     try {
-      storageSet("xcapp_settings", JSON.stringify(state.settings));
+      storageSet(uKey('settings'), JSON.stringify(state.settings));
     } catch (e) {
       /* ignore */
     }
   }
   function saveCompareCache() {
     try {
-      storageSet("xcapp_shenlun_compare", JSON.stringify(state.compareCache));
+      storageSet(uKey('shenlun_compare'), JSON.stringify(state.compareCache));
     } catch (e) {
       /* ignore */
     }
   }
   function saveNewsSaved() {
     try {
-      storageSet("xcapp_news_saved", JSON.stringify(state.news.saved));
+      storageSet(uKey('news_saved'), JSON.stringify(state.news.saved));
     } catch (e) {
       /* ignore */
     }
   }
   function saveNewsSummaries() {
     try {
-      storageSet("xcapp_news_summaries", JSON.stringify(state.news.summaries));
+      storageSet(uKey('news_summaries'), JSON.stringify(state.news.summaries));
     } catch (e) {
       /* ignore */
     }
   }
   function saveSummaries() {
     try {
-      storageSet("xcapp_summaries", JSON.stringify(state.summaries));
+      storageSet(uKey('summaries'), JSON.stringify(state.summaries));
     } catch (e) {
       /* ignore */
     }
   }
   function saveCalcHistory() {
     try {
-      storageSet("xcapp_calc_history", JSON.stringify(state.calc.history));
+      storageSet(uKey('calc_history'), JSON.stringify(state.calc.history));
     } catch (e) {
       /* ignore */
     }
   }
   function saveIdioms() {
     try {
-      storageSet("xcapp_idioms", JSON.stringify(state.idiom.saved));
+      storageSet(uKey('idioms'), JSON.stringify(state.idiom.saved));
     } catch (e) {
       /* ignore */
     }
@@ -289,7 +319,7 @@
   function saveAiHistory() {
     try {
       storageSet(
-        "xcapp_ai_history",
+        uKey('ai_history'),
         JSON.stringify(state.ai.history.slice(0, 50)),
       );
     } catch (e) {
@@ -330,7 +360,7 @@
   }
   function saveDarkMode(pref) {
     try {
-      storageSet("xcapp_dark_mode", pref || "auto");
+      storageSet(uKey('dark_mode'), pref || "auto");
     } catch (e) {
       /* ignore */
     }
@@ -368,7 +398,7 @@
     if (id) state.imgDirty[id] = true;
   }
   function imgKey(id) {
-    return IMG_KEY_PREFIX + id;
+    return uKey('img_' + id);
   }
   function qImagesPayload(q) {
     return JSON.stringify({
@@ -410,7 +440,7 @@
     var textOk = false;
     try {
       textOk = storageSet(
-        STORAGE_KEY,
+        uKey('questions'),
         JSON.stringify(state.questions, stripQuestionImages),
       );
     } catch (e) {
@@ -425,7 +455,7 @@
         try {
           if (
             storageSet(
-              STORAGE_KEY,
+              uKey('questions'),
               JSON.stringify(state.questions, stripQuestionImages),
             )
           ) {
@@ -449,7 +479,7 @@
             try {
               if (
                 storageSet(
-                  STORAGE_KEY,
+                  uKey('questions'),
                   JSON.stringify(state.questions, stripQuestionImages),
                 )
               ) {
@@ -509,5 +539,6 @@
     qImagesPayload: qImagesPayload,
     stripQuestionImages: stripQuestionImages,
     persistDirtyImages: persistDirtyImages,
+    uKey: uKey,
   };
 })();

@@ -278,6 +278,50 @@
           state.tab = "home";
           render();
           break;
+        case "authLogin":
+          var loginUser = ($("#auth-user") || {}).value || "";
+          var loginPwd = ($("#auth-pwd") || {}).value || "";
+          var loginRes = NS.auth.login(loginUser, loginPwd);
+          if (loginRes.ok) {
+            state.user = loginUser;
+            NS.store.load();
+            render();
+          } else {
+            var msgEl = $("#auth-msg");
+            if (msgEl) msgEl.textContent = loginRes.msg;
+          }
+          break;
+        case "authRegister":
+          var regUser = ($("#auth-user") || {}).value || "";
+          var regPwd = ($("#auth-pwd") || {}).value || "";
+          var regRes = NS.auth.register(regUser, regPwd);
+          if (regRes.ok) {
+            state.user = regUser;
+            NS.store.load();
+            render();
+          } else {
+            var msgEl2 = $("#auth-msg");
+            if (msgEl2) msgEl2.textContent = regRes.msg;
+          }
+          break;
+        case "authSwitch":
+          var swUser = el.getAttribute("data-v");
+          NS.auth.switchUser(swUser);
+          state.user = swUser;
+          NS.store.load();
+          render();
+          break;
+        case "authGuest":
+          state.user = '';
+          NS.store.load();
+          render();
+          break;
+        case "authLogout":
+          NS.auth.logout();
+          state.user = '';
+          state.tab = 'home';
+          render();
+          break;
         case "openAdd":
           openForm(null);
           render();

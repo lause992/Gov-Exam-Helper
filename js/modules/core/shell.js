@@ -176,6 +176,11 @@
       '" style="margin-left:8px">' +
       dmIcon +
       "</div>";
+    var userBtn = '';
+    var curUser = NS.auth.currentUser();
+    if (curUser) {
+      userBtn = '<div class="header-pen" data-act="openSettings" title="账号设置" style="margin-left:8px;font-size:14px">' + esc(curUser.charAt(0)) + '</div>';
+    }
     var html =
       back +
       '<div class="header-title"><h1>' +
@@ -185,7 +190,8 @@
       (subs[state.tab] || "") +
       "</div></div>" +
       right +
-      darkBtn;
+      darkBtn +
+      userBtn;
     if (el.innerHTML !== html) el.innerHTML = html;
   }
 
@@ -280,9 +286,44 @@
     return "";
   }
 
+  function renderLogin() {
+    var users = NS.auth.listUsers();
+    var html =
+      '<div class="login-page">' +
+      '<div class="login-card">' +
+      '<div class="login-logo">公考小助手</div>' +
+      '<div class="login-sub">本地账号，数据隔离</div>' +
+      '<div class="login-form">' +
+      '<input id="auth-user" type="text" placeholder="用户名" autocomplete="username" />' +
+      '<input id="auth-pwd" type="password" placeholder="密码" autocomplete="current-password" />' +
+      '<div class="login-btns">' +
+      '<button class="btn primary" data-act="authLogin">登录</button>' +
+      '<button class="btn" data-act="authRegister">注册</button>' +
+      '</div>' +
+      '<div id="auth-msg" class="login-msg"></div>' +
+      '</div>';
+    if (users.length) {
+      html += '<div class="login-users"><div class="login-msg">已有账号：</div>';
+      users.forEach(function (u) {
+        html += '<span class="chip" data-act="authSwitch" data-v="' + esc(u) + '">' + esc(u) + '</span>';
+      });
+      html += '</div>';
+    }
+    html += '<div class="login-guest" data-act="authGuest">游客模式（不登录直接使用）</div>';
+    html += '</div></div>';
+    return html;
+  }
+
   function render() {
     var content = $("#content");
     var overlayRoot = $("#overlay-root");
+
+    // 未登录显示登录页
+    if (!NS.auth.isLoggedIn()) {
+      content.innerHTML = renderLogin();
+      renderHeader();
+      return;
+    }
     var activeInfo = captureActiveInput();
     var keep = state.keepScroll;
     var wasOverlay = overlayRoot && overlayRoot.classList.contains("active");
