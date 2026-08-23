@@ -448,11 +448,11 @@
     html +=
       '<div class="chips" style="margin-bottom:12px">' +
       '<span class="chip' +
-      (state.filterDone === "undone" ? " active" : "") +
-      '" data-act="filterDone" data-v="undone">只看未复盘</span>' +
-      '<span class="chip' +
       (state.filterDone === "all" ? " active" : "") +
       '" data-act="filterDone" data-v="all">全部</span>' +
+      '<span class="chip' +
+      (state.filterDone === "undone" ? " active" : "") +
+      '" data-act="filterDone" data-v="undone">只看未复盘</span>' +
       '<span class="chip' +
       (state.filterDone === "done" ? " active" : "") +
       '" data-act="filterDone" data-v="done">只看已复盘</span>' +
