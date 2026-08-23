@@ -805,6 +805,40 @@ body {
   cursor: pointer;
   background: var(--input-bg);
 }
+body.dark .opt {
+  background: var(--input-bg);
+  border-color: var(--line);
+}
+.body.dark .opt .txt {
+  color: var(--text);
+}
+.body.dark .opt .key {
+  color: var(--primary);
+}
+.body.dark .opt.selected {
+  border-color: var(--primary);
+  background: var(--hover);
+}
+.body.dark .opt.selected .key {
+  background: var(--primary);
+  color: #fff;
+}
+.body.dark .opt.correct {
+  border-color: var(--ok);
+  background: var(--ok-bg);
+}
+.body.dark .opt.correct .key {
+  background: var(--ok);
+  color: #fff;
+}
+.body.dark .opt.wrong {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+.body.dark .opt.wrong .key {
+  background: var(--danger);
+  color: #fff;
+}
 .opt .key {
   flex: 0 0 auto;
   width: 26px;
