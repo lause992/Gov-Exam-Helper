@@ -77,6 +77,7 @@
   }
   function statusTag(q) {
     return NS.shell.statusTag(q);
+  }
 
   // === 头像编辑器 ===
   function openAvatarEditor(src) {
