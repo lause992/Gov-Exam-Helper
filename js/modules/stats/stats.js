@@ -102,7 +102,8 @@
       '</div>' +
       '<div class="profile-name">' + esc(state.user || '游客模式') + '</div>' +
       '</div>';
-    html = avatarHtml + html;
+
+    var html = avatarHtml +
       '<div class="stat-grid">' +
       '<div class="stat-cell blue" data-act="jumpStat" data-v="total"><div class="num">' +
       qs.length +
