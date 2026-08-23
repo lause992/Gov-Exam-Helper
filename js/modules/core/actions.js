@@ -84,16 +84,15 @@
     var img = new Image();
     img.onload = function () {
       var vpSize = 240;
-      var initScale = Math.min(vpSize / img.width, vpSize / img.height, 1);
-      var drawW = img.width * initScale;
-      var drawH = img.height * initScale;
+      var fitScale = Math.min(vpSize / img.width, vpSize / img.height);
       state._avatarEditor = {
         src: src,
-        scale: initScale,
+        scale: fitScale,
         x: 0,
         y: 0,
         naturalW: img.width,
-        naturalH: img.height
+        naturalH: img.height,
+        vpSize: vpSize
       };
       state.overlay = { type: 'avatarEditor' };
       render();
@@ -108,11 +107,22 @@
     var img = wrap.querySelector('img');
     if (!img) return;
     img.style.transform = 'translate(' + ed.x + 'px,' + ed.y + 'px) scale(' + ed.scale + ')';
+    // 圆形遮罩跟随图片实际大小
+    var circle = wrap.querySelector('.avatar-editor-circle');
+    if (circle) {
+      var drawW = ed.naturalW * ed.scale;
+      var drawH = ed.naturalH * ed.scale;
+      var diam = Math.min(drawW, drawH, ed.vpSize);
+      circle.style.width = diam + 'px';
+      circle.style.height = diam + 'px';
+      circle.style.left = ((ed.vpSize - diam) / 2) + 'px';
+      circle.style.top = ((ed.vpSize - diam) / 2) + 'px';
+    }
   }
   function saveAvatarFromEditor() {
     var ed = state._avatarEditor;
     if (!ed || !ed.src) return;
-    var vpSize = 240;
+    var vpSize = ed.vpSize || 240;
     var cvSz = 400;
     var ratio = cvSz / vpSize;
     var img = new Image();
@@ -121,15 +131,22 @@
       cv.width = cvSz;
       cv.height = cvSz;
       var ctx = cv.getContext('2d');
+      // 圆形裁剪
       ctx.beginPath();
       ctx.arc(cvSz / 2, cvSz / 2, cvSz / 2, 0, Math.PI * 2);
       ctx.clip();
+      // 图片在 viewport 中的绘制参数
       var drawW = img.width * ed.scale;
       var drawH = img.height * ed.scale;
-      var offsetX = (cvSz - drawW) / 2 + ed.x * ratio;
-      var offsetY = (cvSz - drawH) / 2 + ed.y * ratio;
-      ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
-      NS.store.saveAvatar(cv.toDataURL('image/png', 0.85));
+      // viewport 中图片左上角（top:50% left:50% + translate）
+      var vpImgX = vpSize / 2 + ed.x;
+      var vpImgY = vpSize / 2 + ed.y;
+      // 映射到 canvas
+      var cx = vpImgX * ratio;
+      var cy = vpImgY * ratio;
+      ctx.drawImage(img, cx, cy, drawW * ratio, drawH * ratio);
+      var dataUrl = cv.toDataURL('image/png', 0.85);
+      NS.store.saveAvatar(dataUrl);
       state._avatarEditor = null;
       state.overlay = null;
       render();
@@ -416,8 +433,7 @@
         case "avatarReset":
           if (state._avatarEditor) {
             var ed0 = state._avatarEditor;
-            var initS = Math.min(240 / ed0.naturalW, 240 / ed0.naturalH, 1);
-            ed0.scale = initS;
+            ed0.scale = Math.min(ed0.vpSize / ed0.naturalW, ed0.vpSize / ed0.naturalH);
             ed0.x = 0;
             ed0.y = 0;
             renderAvatarEditor();

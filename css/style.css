@@ -2313,14 +2313,11 @@ body.dark .login-form input {
 }
 .avatar-editor-circle {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
   border-radius: 50%;
-  border: 3px dashed rgba(255,255,255,0.4);
+  border: 3px dashed rgba(255,255,255,0.5);
   pointer-events: none;
   z-index: 2;
+  transition: width 0.15s, height 0.15s, left 0.15s, top 0.15s;
 }
 .avatar-editor-viewport img {
   position: absolute;
