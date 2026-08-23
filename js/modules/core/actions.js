@@ -85,11 +85,13 @@
     img.onload = function () {
       var vpSize = 240;
       var fitScale = Math.min(vpSize / img.width, vpSize / img.height);
+      var drawW = img.width * fitScale;
+      var drawH = img.height * fitScale;
       state._avatarEditor = {
         src: src,
         scale: fitScale,
-        x: 0,
-        y: 0,
+        x: -drawW / 2,
+        y: -drawH / 2,
         naturalW: img.width,
         naturalH: img.height,
         vpSize: vpSize
@@ -131,19 +133,15 @@
       cv.width = cvSz;
       cv.height = cvSz;
       var ctx = cv.getContext('2d');
-      // 圆形裁剪
       ctx.beginPath();
       ctx.arc(cvSz / 2, cvSz / 2, cvSz / 2, 0, Math.PI * 2);
       ctx.clip();
-      // 图片在 viewport 中的绘制参数
       var drawW = img.width * ed.scale;
       var drawH = img.height * ed.scale;
-      // viewport 中图片左上角（top:50% left:50% + translate）
-      var vpImgX = vpSize / 2 + ed.x;
-      var vpImgY = vpSize / 2 + ed.y;
-      // 映射到 canvas
-      var cx = vpImgX * ratio;
-      var cy = vpImgY * ratio;
+      // img CSS: top:50%; left:50%; transform: translate(x,y) scale(s)
+      // 图片在 viewport 中的左上角: (vpSize/2 + ed.x, vpSize/2 + ed.y)
+      var cx = (vpSize / 2 + ed.x) * ratio;
+      var cy = (vpSize / 2 + ed.y) * ratio;
       ctx.drawImage(img, cx, cy, drawW * ratio, drawH * ratio);
       var dataUrl = cv.toDataURL('image/png', 0.85);
       NS.store.saveAvatar(dataUrl);
@@ -435,8 +433,8 @@
           if (state._avatarEditor) {
             var ed0 = state._avatarEditor;
             ed0.scale = Math.min(ed0.vpSize / ed0.naturalW, ed0.vpSize / ed0.naturalH);
-            ed0.x = 0;
-            ed0.y = 0;
+            ed0.x = -(ed0.naturalW * ed0.scale) / 2;
+            ed0.y = -(ed0.naturalH * ed0.scale) / 2;
             renderAvatarEditor();
           }
           break;

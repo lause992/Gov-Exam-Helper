@@ -460,6 +460,7 @@
     var vp = document.getElementById('avatar-editor-viewport');
     if (!vp || !state._avatarEditor) return;
     var ed = state._avatarEditor;
+    var vpSize = ed.vpSize || 240;
     var startX = 0, startY = 0, startEdX = 0, startEdY = 0, dragging = false;
     var lastDist = 0;
 
