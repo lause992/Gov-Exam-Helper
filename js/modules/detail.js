@@ -1243,9 +1243,8 @@
         render();
         scoreShenlunAnswer(q, note).then(function (result) {
           state.shenlunScoring = false;
-          var scoreMatch = (result || "").match(/(\d+)\s*(?:\/\s*\d+|分)/);
-          var score = scoreMatch ? scoreMatch[1] + "分" : "";
-          q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: score, aiResult: result });
+          var score = result && result.score ? result.score : "";
+          q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: score, aiResult: result || null });
           q.rounds = (q.rounds || 0) + 1;
           q.updatedAt = Date.now();
           save();
@@ -1255,14 +1254,37 @@
           toast("AI 评分完成：" + (score || "已评分"));
         }).catch(function () {
           state.shenlunScoring = false;
-          q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: "" });
-          q.rounds = (q.rounds || 0) + 1;
-          q.updatedAt = Date.now();
-          save();
-          state.practice = null;
-          state.overlay = { type: "detail", id: p.id };
-          render();
-          toast("AI 评分失败，已记录复盘");
+          var simpleParts = ["【申论题目】"];
+          simpleParts.push("题目来源：" + (q.source || "未知"));
+          if (q.stem) simpleParts.push("【题目要求】\n" + q.stem);
+          (q.materials || []).forEach(function (m, i) {
+            if (!m || !(m.content || "").trim()) return;
+            simpleParts.push("【材料" + (i + 1) + "】\n" + m.content);
+          });
+          simpleParts.push("【考生作答】");
+          simpleParts.push(note);
+          simpleParts.push("\n请简要评分，输出格式：【总分】X/X");
+          zhipuChat([{ role: "system", content: "你是申论阅卷专家。" }, { role: "user", content: simpleParts.join("\n") }], 512, 30000).then(function (txt) {
+            var m2 = (txt || "").match(/(\d+)\s*\/\s*(\d+)/);
+            var score2 = m2 ? m2[1] + "/" + m2[2] : "";
+            q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: score2, aiResult: txt });
+            q.rounds = (q.rounds || 0) + 1;
+            q.updatedAt = Date.now();
+            save();
+            state.practice = null;
+            state.overlay = { type: "detail", id: p.id };
+            render();
+            toast("AI 评分完成：" + (score2 || "已评分"));
+          }).catch(function () {
+            q.reviewHistory.push({ date: todayStr(), correct: null, answer: note, score: "" });
+            q.rounds = (q.rounds || 0) + 1;
+            q.updatedAt = Date.now();
+            save();
+            state.practice = null;
+            state.overlay = { type: "detail", id: p.id };
+            render();
+            toast("AI 评分失败，已记录复盘");
+          });
         });
         return;
       }
