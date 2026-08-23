@@ -101,6 +101,8 @@
     compareActive: '',
     shenlunScoring: false,
     reviewExpandedIdx: -1,
-    imgDirty: {}
+    imgDirty: {},
+    darkMode: false,
+    darkModePref: 'auto'
   };
 })();

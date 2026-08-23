@@ -794,9 +794,10 @@
             slEl.style.display = state.scratch ? "" : "none";
             if (state.scratch) NS.scratch.initScratch();
           }
-          var penBtn = el && el.closest(".overlay-head")
-            ? el
-            : document.querySelector('[data-act="toggleScratch"]');
+          var penBtn =
+            el && el.closest(".overlay-head")
+              ? el
+              : document.querySelector('[data-act="toggleScratch"]');
           if (penBtn) {
             penBtn.textContent = state.scratch ? "✓" : "✏";
             penBtn.classList.toggle("on", state.scratch);
@@ -1280,6 +1281,23 @@
                 : "已重新加入复盘",
             );
           }
+          break;
+        case "toggleDarkMode":
+          // 三态循环:light → dark → auto → light
+          var pref = state.darkModePref || "auto";
+          var next =
+            pref === "light" ? "dark" : pref === "dark" ? "auto" : "light";
+          state.darkModePref = next;
+          state.darkMode = NS.store.applyDarkMode(next);
+          NS.store.saveDarkMode(next);
+          render();
+          toast(
+            next === "dark"
+              ? "已切换夜间模式"
+              : next === "light"
+                ? "已切换日间模式"
+                : "已切换跟随系统",
+          );
           break;
         case "openSettings":
           state.overlay = { type: "settings" };
