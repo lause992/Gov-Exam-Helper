@@ -359,7 +359,7 @@
           var loginRes = NS.auth.login(loginUser, loginPwd);
           if (loginRes.ok) {
             state.user = loginUser;
-            NS.store.load();
+            NS.store.reload();
             render();
           } else {
             var msgEl = $("#auth-msg");
@@ -372,7 +372,7 @@
           var regRes = NS.auth.register(regUser, regPwd);
           if (regRes.ok) {
             state.user = regUser;
-            NS.store.load();
+            NS.store.reload();
             render();
           } else {
             var msgEl2 = $("#auth-msg");
@@ -383,18 +383,19 @@
           var swUser = el.getAttribute("data-v");
           NS.auth.switchUser(swUser);
           state.user = swUser;
-          NS.store.load();
+          NS.store.reload();
           render();
           break;
         case "authGuest":
           state.user = '';
-          NS.store.load();
+          NS.store.reload();
           render();
           break;
         case "authLogout":
           NS.auth.logout();
           state.user = '';
           state.tab = 'home';
+          NS.store.reload();
           render();
           break;
         case "changeAvatar":

@@ -20,17 +20,29 @@
   var IMG_KEY_PREFIX = NS.consts.IMG_KEY_PREFIX;
 
   /* === 用户隔离：key 自动加前缀 === */
+  var _fallbackChecked = false;
+  var _useFallback = false;
   function userPrefix() {
     var u = NS.auth && NS.auth.currentUser();
     return u ? 'xcapp_u_' + u + '_' : 'xcapp_';
   }
+  function checkFallback() {
+    if (_fallbackChecked) return;
+    _fallbackChecked = true;
+    var prefix = userPrefix();
+    // 如果当前前缀下没有 questions 数据，但旧 xcapp_questions 存在，则回退
+    if (!localStorage.getItem(prefix + 'questions') && localStorage.getItem('xcapp_questions')) {
+      _useFallback = true;
+    }
+  }
   function uKey(key) {
+    checkFallback();
+    if (_useFallback) return 'xcapp_' + key;
     return userPrefix() + key;
   }
-  // 兼容旧 key（无用户前缀）
+  // 尝试从旧 key 迁移（兼容无账号版本）
   function migrateOldKeys() {
     var u = NS.auth && NS.auth.currentUser();
-    if (!u) return;
     var oldKeys = [
       'xcapp_questions', 'xcapp_calc_history', 'xcapp_idioms',
       'xcapp_ai_history', 'xcapp_fab_pos', 'xcapp_news_saved',
@@ -38,13 +50,21 @@
       'xcapp_shenlun_compare', 'xcapp_summaries', 'xcapp_summary_nav_pos',
       'xcapp_dark_mode'
     ];
-    var newPrefix = 'xcapp_u_' + u + '_';
-    oldKeys.forEach(function (k) {
-      var raw = localStorage.getItem(k);
-      if (raw && !localStorage.getItem(newPrefix + k.replace('xcapp_', ''))) {
-        localStorage.setItem(newPrefix + k.replace('xcapp_', ''), raw);
-      }
-    });
+    if (u) {
+      // 登录用户：迁移旧无前缀 key 到用户专属 key
+      var newPrefix = 'xcapp_u_' + u + '_';
+      oldKeys.forEach(function (k) {
+        var raw = localStorage.getItem(k);
+        if (raw && !localStorage.getItem(newPrefix + k.replace('xcapp_', ''))) {
+          localStorage.setItem(newPrefix + k.replace('xcapp_', ''), raw);
+        }
+      });
+    }
+    // 无论是否登录，如果当前前缀下没有数据但旧 key 有数据，临时用旧 key
+    // （这样游客模式也能看到旧数据）
+  }
+  function hasDataForPrefix(prefix) {
+    return !!localStorage.getItem(prefix + 'questions');
   }
 
   /* === 跨模块引用（运行时通过 NS 解析，避免加载顺序耦合） === */
@@ -169,6 +189,15 @@
       loadSummariesNow();
     }, 600);
     setTimeout(loadQuestionImages, 0);
+  }
+
+  function reload() {
+    _fallbackChecked = false;
+    _useFallback = false;
+    state._summariesLoaded = false;
+    state._imgLoading = false;
+    state.imgDirty = {};
+    load();
   }
 
   function loadSummariesNow() {
@@ -532,6 +561,7 @@
   /* === 对外暴露 === */
   NS.store = {
     load: load,
+    reload: reload,
     save: save,
     findQ: findQ,
     loadSummariesNow: loadSummariesNow,
