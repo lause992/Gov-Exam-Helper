@@ -1330,7 +1330,21 @@
         return l.trim();
       })
       .filter(Boolean);
-    var result = { stem: "", options: [], answer: "" };
+    var result = { stem: "", options: [], answer: "", category: "", subCategory: "" };
+    var stripped = String(text || "").trim();
+    if (stripped.charAt(0) === '{') {
+      try {
+        var j = JSON.parse(stripped);
+        if (j.category) result.category = j.category;
+        if (j.subCategory) result.subCategory = j.subCategory;
+        if (j.stem) result.stem = j.stem;
+        if (j.answer) result.answer = String(j.answer).charAt(0).toUpperCase();
+        if (Array.isArray(j.options) && j.options.length >= 2) {
+          result.options = j.options.map(function (o) { return String(o).trim(); });
+          return result;
+        }
+      } catch (e) { /* fall through to text parsing */ }
+    }
     var optionReStrict = /^([A-F])\s*[.、．)）:：]\s*(.+)$/;
     var optionReNoSep = /^([A-F])\s+(.+)$/;
     var optionReLoose = /([A-F])\s*[.、．)）:：]\s*(.+)$/;
@@ -1382,6 +1396,19 @@
     return result;
   }
 
+  function fuzzyMatchSubCategory(category, raw) {
+    if (!raw || !category) return raw || '';
+    var list = SUBCATEGORIES[category];
+    if (!list) return raw;
+    for (var i = 0; i < list.length; i++) {
+      if (raw === list[i] || list[i].indexOf(raw) >= 0 || raw.indexOf(list[i]) >= 0) return list[i];
+    }
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].indexOf(raw.substring(0, 2)) >= 0 || raw.indexOf(list[i].substring(0, 2)) >= 0) return list[i];
+    }
+    return raw;
+  }
+
   function ocrUpdate(status, progress) {
     state.ocrStatus = status;
     state.ocrProgress = progress || 0;
@@ -1406,8 +1433,11 @@
       ocrUpdate("AI 识别中…", 0.5);
       var text = await zhipuVision(
         img,
-        "识别错题截图文字。输出格式：题干内容，每行一个选项如\"A. 内容\"，最后如有答案标记输出\"答案：X\"。" +
-          "正确答案判断：绿色圆圈/对勾/实心圆标记的选项。完整输出，不要解释。",
+        "识别考试错题截图，返回JSON格式（不要markdown包裹）：" +
+          '{"category":"大分类","subCategory":"小分类","stem":"题干","options":["A. 内容","B. 内容",...],"answer":"答案字母"}' +
+          "分类选项：言语理解(逻辑填空/片段阅读/语句表达)、政治理论(习思想/马克思/时政)、常识判断(经济/科技/人文/地理/法律)、" +
+          "判断推理(图形推理/定义判断/类比推理/逻辑判断)、资料分析、数量关系(工程/最值/年龄/行程/几何/排列组合/概率/经济利润等)、申论。" +
+          "正确答案：绿色圆圈/对勾标记的选项。直接返回JSON，不要解释。",
         1024,
       );
       if (!state.form || !state.overlay || state.overlay.type !== "form") {
@@ -1415,6 +1445,8 @@
         return;
       }
       var parsed = parseOcrText(text);
+      if (parsed.category && !f.category) f.category = parsed.category;
+      if (parsed.subCategory && !f.subCategory) f.subCategory = fuzzyMatchSubCategory(parsed.category, parsed.subCategory);
       f.stem = parsed.stem || f.stem;
       if (parsed.options.length >= 2) {
         var oldImgs = f.optImgs || [];
@@ -1427,8 +1459,11 @@
       state.ocrRunning = false;
       state.keepScroll = true;
       render();
-      if (parsed.options.length >= 2) toast("识别完成，请核对内容");
-      else toast("识别完成，未能识别出选项，请手动填写");
+      var info = [];
+      if (parsed.category) info.push(parsed.category + (parsed.subCategory ? '/' + parsed.subCategory : ''));
+      if (parsed.options.length >= 2) info.push('已识别' + parsed.options.length + '个选项');
+      if (parsed.answer) info.push('答案：' + parsed.answer);
+      toast(info.length ? '识别完成：' + info.join('，') + '，请核对' : '识别完成，请核对内容');
     } catch (e) {
       state.ocrRunning = false;
       render();
