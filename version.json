@@ -1,1 +1,1 @@
-{"version":110,"notes":"v11.0: 每日0点自动备份到Download文件夹+错题本跳转修复"}
+{"version":111,"notes":"v11.1: AI题干识别优化-完整保留文段和提问句+max_tokens提升到4096"}

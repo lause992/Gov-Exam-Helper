@@ -102,7 +102,7 @@
               { type: 'text', text: prompt }
             ]
           }],
-          max_tokens: Math.min(maxTokens || 1024, 1024),
+          max_tokens: Math.min(maxTokens || 1024, 4096),
           stream: false,
           temperature: 0.1
         })
