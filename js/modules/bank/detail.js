@@ -1332,6 +1332,7 @@
       .filter(Boolean);
     var result = { stem: "", options: [], answer: "", category: "", subCategory: "" };
     var stripped = String(text || "").trim();
+    stripped = stripped.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
     if (stripped.charAt(0) === '{') {
       try {
         var j = JSON.parse(stripped);
