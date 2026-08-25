@@ -1,1 +1,1 @@
-{"version":115,"notes":"v11.5: 全新JSON提取-直接定位{}忽略markdown包裹"}
+{"version":116,"notes":"v11.6: JSON解析失败时不再把JSON当题干+正则提取fallback"}

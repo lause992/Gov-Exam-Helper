@@ -1387,6 +1387,30 @@
         if (result.stem) return result;
       }
     }
+
+    // JSON解析失败，尝试用正则从JSON文本中提取字段
+    if (!result.stem) {
+      var stemMatch = raw.match(/"stem"\s*:\s*"([\s\S]*?)"\s*(?:,|\s*})/);
+      var catMatch = raw.match(/"category"\s*:\s*"([^"]*)"/);
+      var subMatch = raw.match(/"subCategory"\s*:\s*"([^"]*)"/);
+      var ansMatch = raw.match(/"answer"\s*:\s*"([^"]*)"/);
+      var optMatch = raw.match(/"options"\s*:\s*\[([\s\S]*?)\]/);
+      if (stemMatch) result.stem = stemMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      if (catMatch) result.category = catMatch[1];
+      if (subMatch) result.subCategory = subMatch[1];
+      if (ansMatch) result.answer = String(ansMatch[1]).charAt(0).toUpperCase();
+      if (optMatch) {
+        var optParts = optMatch[1].match(/"([^"]*)"/g);
+        if (optParts && optParts.length >= 2) {
+          result.options = optParts.map(function (o) {
+            return o.replace(/^"|"$/g, '').trim();
+          });
+        }
+      }
+      if (result.stem) return result;
+    }
+
+    // 最终fallback：纯文本解析（但跳过```json和JSON内容）
     var optionReStrict = /^([A-F])\s*[.、．)）:：]\s*(.+)$/;
     var optionReNoSep = /^([A-F])\s+(.+)$/;
     var optionReLoose = /([A-F])\s*[.、．)）:：]\s*(.+)$/;
@@ -1395,8 +1419,17 @@
     var stemLines = [];
     var optionLines = [];
     var inOptions = false;
-
+    var skipJson = false;
     lines.forEach(function (line) {
+      if (line.indexOf('```') >= 0 || line.match(/^\s*\{/) || line.match(/^\s*"/)) {
+        skipJson = true;
+        return;
+      }
+      if (skipJson && (line.indexOf('}') >= 0 || line.indexOf(']') >= 0)) {
+        skipJson = false;
+        return;
+      }
+      if (skipJson) return;
       if (!result.answer) {
         var am = line.match(answerRe);
         if (am) {
@@ -1432,8 +1465,12 @@
         return o.key + ". " + o.text;
       });
       if (!result.stem) result.stem = "（题干识别失败，请手动补充）";
-    } else {
-      result.stem = lines.join("\n");
+    } else if (!result.stem) {
+      // 只用非JSON的行作为题干
+      var cleanLines = stemLines.filter(function (l) {
+        return l.indexOf('```') < 0 && l.indexOf('"category"') < 0 && l.indexOf('"stem"') < 0;
+      });
+      result.stem = cleanLines.length ? cleanLines.join("\n") : "（题干识别失败，请手动补充）";
     }
     return result;
   }
