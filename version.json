@@ -1,1 +1,1 @@
-{"version":114,"notes":"v11.4: 更强健的markdown去除+截断JSON修复"}
+{"version":115,"notes":"v11.5: 全新JSON提取-直接定位{}忽略markdown包裹"}
