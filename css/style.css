@@ -2360,3 +2360,7 @@ body.dark .login-form input {
 body.dark .avatar-editor-viewport {
   background: #0d1117;
 }
+.katex { font-size: 1em; }
+.katex-display { margin: 0.5em 0; }
+.opt .txt .katex { font-size: 1em; }
+.body.dark .katex { color: inherit; }

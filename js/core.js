@@ -172,7 +172,24 @@
       return imageToCanvas(dataUrl, { maxDim: maxDim || 1100, quality: quality || 0.7 });
     },
     prepareOcrImage: function (dataUrl) {
-      return imageToCanvas(dataUrl, { maxDim: 2200, quality: 0.85, bg: '#fff' });
+      return imageToCanvas(dataUrl, { maxDim: 1600, quality: 0.85, bg: '#fff' });
+    },
+    renderLatex: function (text) {
+      if (!text) return '';
+      var s = String(text);
+      if (typeof katex === 'undefined') return esc(s);
+      s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      s = s.replace(/\\\((.+?)\\\)/g, function (_, m) {
+        try { return katex.renderToString(m.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'), { throwOnError: false }); } catch (e) { return m; }
+      });
+      s = s.replace(/\\\[(.+?)\\\]/g, function (_, m) {
+        try { return katex.renderToString(m.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'), { throwOnError: false, displayMode: true }); } catch (e) { return m; }
+      });
+      var latexCmds = /(?:\\sqrt(?:\{[^}]*\})?|\\frac\{[^}]*\}\{[^}]*\}|\\d+\\sqrt\{[^}]*\}|\\times|\\div|\\pm|\\leq|\\geq|\\neq|\\approx|\\alpha|\\beta|\\gamma|\\delta|\\pi|\\theta|\\infty|\\degree|\\angle)(?:\{[^}]*\})*(?:\{[^}]*\})*/;
+      s = s.replace(latexCmds, function (m) {
+        try { return katex.renderToString(m, { throwOnError: false }); } catch (e) { return m; }
+      });
+      return s;
     }
   };
 })();

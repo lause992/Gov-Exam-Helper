@@ -86,7 +86,7 @@
     return new Promise(function (resolve, reject) {
       var timeout = setTimeout(function () {
         reject(new Error('识别超时，请稍后重试'));
-      }, 30000);
+      }, 60000);
       fetch(ZHIPU_API_URL, {
         method: 'POST',
         headers: {
@@ -109,7 +109,9 @@
       }).then(function (r) {
         clearTimeout(timeout);
         if (!r.ok) {
-          throw new Error('识别服务异常（' + r.status + '）');
+          return r.text().then(function (errBody) {
+            throw new Error('识别服务异常（' + r.status + '）' + (errBody ? errBody.substring(0, 300) : ''));
+          });
         }
         return r.json();
       }).then(function (data) {

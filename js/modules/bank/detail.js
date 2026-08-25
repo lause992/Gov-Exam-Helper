@@ -12,6 +12,7 @@
     $all = NS.utils.$all,
     esc = NS.utils.esc,
     stripMd = NS.utils.stripMd;
+  var renderLatex = NS.bridge.renderLatex;
   var pad = NS.utils.pad,
     todayStr = NS.utils.todayStr,
     addDays = NS.utils.addDays;
@@ -114,7 +115,7 @@
     var img = q.optImgs && q.optImgs[i];
     if (img) return '<img class="opt-img" src="' + img + '">';
     var clean = stripOptionPrefix(text);
-    return esc(clean || text || "");
+    return renderLatex(clean || text || "");
   }
 
   function shenlunBodyHtml(q) {
@@ -205,7 +206,7 @@
       if (q.stem)
         html +=
           '<p style="font-size:14.5px;white-space:pre-wrap;margin-top:8px">' +
-          esc(q.stem) +
+          renderLatex(q.stem) +
           "</p>";
       if (q.image)
         html += '<div class="img-wrap"><img src="' + q.image + '"></div>';
@@ -607,7 +608,7 @@
     if (q.stem)
       html +=
         '<p style="font-size:15px;white-space:pre-wrap">' +
-        esc(q.stem) +
+        renderLatex(q.stem) +
         "</p>";
     if (q.image)
       html += '<div class="img-wrap"><img src="' + q.image + '"></div>';
@@ -1405,13 +1406,9 @@
       ocrUpdate("AI 识别中…", 0.5);
       var text = await zhipuVision(
         img,
-        "请识别这张考试错题截图中的全部文字。" +
-          '输出要求：先输出题干内容；如果图中有选项，每行输出一个选项，格式为"A. 选项内容"；' +
-          '如果图中有正确答案标记，请在最后一行输出"答案：X"（X 为正确选项的大写字母）。' +
-          '正确答案的判断方式：1）文字标记如"答案：B"或"正确答案：B"；2）选项前有绿色圆圈/绿色对勾/绿色实心圆标记的即为正确答案；' +
-          "3）选项旁有红色标记/删除线的为错误答案。请根据绿色标记判断正确选项。" +
-          "请完整、准确地输出所有文字，不要遗漏，不要额外解释。",
-        4096,
+        "识别错题截图文字。输出格式：题干内容，每行一个选项如\"A. 内容\"，最后如有答案标记输出\"答案：X\"。" +
+          "正确答案判断：绿色圆圈/对勾/实心圆标记的选项。完整输出，不要解释。",
+        1024,
       );
       if (!state.form || !state.overlay || state.overlay.type !== "form") {
         state.ocrRunning = false;
@@ -1451,9 +1448,8 @@
       ocrUpdate("AI 识别中…", 0.5);
       var text = await zhipuVision(
         img,
-        '请识别这张图片中的全部选项文字，每行输出一个选项，格式为"A. 选项内容"（A 为大写字母）。' +
-          "请完整、准确地输出所有选项，不要遗漏，不要额外解释。",
-        2048,
+        "识别图片中的选项文字，每行一个，格式\"A. 内容\"。完整输出，不要解释。",
+        1024,
       );
       if (!state.form || !state.overlay || state.overlay.type !== "form") {
         state.ocrRunning = false;

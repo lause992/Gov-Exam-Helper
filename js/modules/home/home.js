@@ -12,6 +12,7 @@
     $all = NS.utils.$all,
     esc = NS.utils.esc,
     stripMd = NS.utils.stripMd;
+  var renderLatex = NS.bridge.renderLatex;
   var pad = NS.utils.pad,
     todayStr = NS.utils.todayStr,
     addDays = NS.utils.addDays;
@@ -358,7 +359,7 @@
   function stemPreviewHtml(q) {
     var stem = String(q.stem || "").trim();
     if (stem) {
-      return '<div class="q-stem-preview">' + esc(stem) + "</div>";
+      return '<div class="q-stem-preview">' + renderLatex(stem) + "</div>";
     }
     if (q.image) {
       return '<div class="q-stem-preview img-hint">[图片题 · 点击查看题干]</div>';

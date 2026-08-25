@@ -720,7 +720,7 @@
           pickImage("gallery")
             .then(function (dataUrl) {
               if (!dataUrl) return;
-              return compressImage(dataUrl, 1800, 0.85).then(function (small) {
+              return compressImage(dataUrl, 1500, 0.85).then(function (small) {
                 state.ai.pendingImg = small;
                 state.keepScroll = true;
                 render();

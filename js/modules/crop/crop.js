@@ -90,7 +90,7 @@
     out.height = sh;
     var ctx = out.getContext('2d');
     ctx.drawImage(c.img, sx, sy, sw, sh, 0, 0, sw, sh);
-    var dataUrl = out.toDataURL('image/jpeg', 0.95);
+    var dataUrl = out.toDataURL('image/jpeg', 0.85);
     var cb = state.cropCb;
     var target = state.cropTarget;
     detachCrop();
@@ -198,6 +198,8 @@
       var min = 0.06;
       if (r.w < min) r.w = min;
       if (r.h < min) r.h = min;
+      if (r.w > 1) r.w = 1;
+      if (r.h > 1) r.h = 1;
       if (r.x < 0) r.x = 0;
       if (r.y < 0) r.y = 0;
       if (r.x + r.w > 1) r.x = 1 - r.w;
@@ -247,6 +249,8 @@
         if (h === 6 || h === 7 || h === 0) { r.x = drag.orig.x + d.x; r.w = drag.orig.w - d.x; }
         if (h === 4 || h === 5 || h === 6) r.h = drag.orig.h + d.y;
         if (h === 0 || h === 1 || h === 2) { r.y = drag.orig.y + d.y; r.h = drag.orig.h - d.y; }
+        if (r.w < 0.06) { if (h === 6 || h === 7 || h === 0) r.x = drag.orig.x + drag.orig.w - 0.06; r.w = 0.06; }
+        if (r.h < 0.06) { if (h === 0 || h === 1 || h === 2) r.y = drag.orig.y + drag.orig.h - 0.06; r.h = 0.06; }
       }
       c.r = clampRect(r);
       drawCrop();
