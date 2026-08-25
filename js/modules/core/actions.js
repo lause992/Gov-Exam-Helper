@@ -454,7 +454,11 @@
           render();
           break;
         case "switchTab":
-          state.tab = key;
+          // Validate key: only allow known tab keys
+          var validTabs = ["home", "ai", "stats", "bank"];
+          if (key && validTabs.indexOf(key) >= 0) {
+            state.tab = key;
+          }
           render();
           break;
         case "queryIdiom":

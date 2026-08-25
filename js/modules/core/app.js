@@ -82,6 +82,11 @@
     });
   }
 
+  // Auto backup on launch (native only)
+  if (!IS_NODE && NS.bridge && NS.bridge.isNative() && window.AndroidBridge.autoBackup) {
+    window.AndroidBridge.autoBackup();
+  }
+
   // === Node.js 导出（测试用） ===
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = { parseOcrText: parseOcrText, extractLetters: extractLetters, isCorrect: isCorrect, addDays: addDays, todayStr: todayStr };
