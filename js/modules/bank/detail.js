@@ -1410,6 +1410,73 @@
     return raw;
   }
 
+  async function aiDetectBounds(dataUrl) {
+    var img = await prepareOcrImage(dataUrl);
+    var text = await zhipuVision(
+      img,
+      "识别截图中考试题目的精确边界。返回JSON（不要markdown包裹）：" +
+        '{"x":0.0,"y":0.0,"w":1.0,"h":1.0}' +
+        "其中x/y是题目区域左上角归一化坐标(0-1)，w/h是宽度和高度。" +
+        "只框选题目文字和选项区域，排除状态栏、标题栏、导航栏等非题目内容。直接返回JSON。",
+      256,
+    );
+    var stripped = String(text || "").trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    try {
+      var j = JSON.parse(stripped);
+      return {
+        x: Math.max(0, Math.min(1, parseFloat(j.x) || 0)),
+        y: Math.max(0, Math.min(1, parseFloat(j.y) || 0)),
+        w: Math.max(0.1, Math.min(1, parseFloat(j.w) || 1)),
+        h: Math.max(0.1, Math.min(1, parseFloat(j.h) || 1))
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function autoCropAndOcr(dataUrl) {
+    var f = state.form;
+    if (!f) return;
+    state.ocrRunning = true;
+    state.ocrProgress = 0;
+    state.ocrStatus = "AI 定位题目范围…";
+    render();
+    try {
+      var bounds = await aiDetectBounds(dataUrl);
+      var cropped = dataUrl;
+      if (bounds) {
+        var img = new Image();
+        await new Promise(function (resolve, reject) {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = dataUrl;
+        });
+        var sx = Math.round(bounds.x * img.naturalWidth);
+        var sy = Math.round(bounds.y * img.naturalHeight);
+        var sw = Math.max(1, Math.round(bounds.w * img.naturalWidth));
+        var sh = Math.max(1, Math.round(bounds.h * img.naturalHeight));
+        sx = Math.max(0, Math.min(sx, img.naturalWidth - 1));
+        sy = Math.max(0, Math.min(sy, img.naturalHeight - 1));
+        sw = Math.min(sw, img.naturalWidth - sx);
+        sh = Math.min(sh, img.naturalHeight - sy);
+        var canvas = document.createElement('canvas');
+        canvas.width = sw;
+        canvas.height = sh;
+        canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+        cropped = canvas.toDataURL('image/jpeg', 0.85);
+      }
+      f.image = cropped;
+      state.ocrRunning = false;
+      state.keepScroll = true;
+      render();
+    } catch (e) {
+      state.ocrRunning = false;
+      f.image = dataUrl;
+      render();
+      toast("自动裁剪失败，已使用原图：" + (e && e.message ? e.message : e));
+    }
+  }
+
   function ocrUpdate(status, progress) {
     state.ocrStatus = status;
     state.ocrProgress = progress || 0;
@@ -1602,5 +1669,6 @@
     del: del,
     runOcr: runOcr,
     ocrExtractOptions: ocrExtractOptions,
+    autoCropAndOcr: autoCropAndOcr,
   };
 })();

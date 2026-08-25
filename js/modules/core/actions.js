@@ -1261,13 +1261,11 @@
         case "ocrOptsImage":
           pickImage("gallery").then(
             function (dataUrl) {
-              openCrop(
-                dataUrl,
-                function (cropped) {
-                  ocrExtractOptions(cropped);
-                },
-                "opt-extract",
-              );
+              NS.detail.autoCropAndOcr(dataUrl).then(function () {
+                if (state.form && state.form.image) {
+                  ocrExtractOptions(state.form.image);
+                }
+              });
             },
             function (err) {
               toast(err.message);
@@ -1277,11 +1275,7 @@
         case "formRepick":
           pickImage(kind).then(
             function (dataUrl) {
-              openCrop(dataUrl, function (cropped) {
-                state.form.image = cropped;
-                state.keepScroll = true;
-                render();
-              });
+              NS.detail.autoCropAndOcr(dataUrl);
             },
             function (err) {
               toast(err.message);
@@ -1290,11 +1284,7 @@
           break;
         case "formCrop":
           if (state.form.image) {
-            openCrop(state.form.image, function (cropped) {
-              state.form.image = cropped;
-              state.keepScroll = true;
-              render();
-            });
+            NS.detail.autoCropAndOcr(state.form.image);
           }
           break;
         case "cropCancel":
