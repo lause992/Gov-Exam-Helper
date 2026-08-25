@@ -1324,12 +1324,6 @@
   }
 
   function parseOcrText(text) {
-    var lines = String(text || "")
-      .split(/\r?\n/)
-      .map(function (l) {
-        return l.trim();
-      })
-      .filter(Boolean);
     var result = { stem: "", options: [], answer: "", category: "", subCategory: "" };
     var raw = String(text || "").trim();
 
@@ -1344,11 +1338,9 @@
     // 修复被截断的JSON
     function fixTruncatedJson(str) {
       var fixed = str;
-      // 移除末尾不完整的值
       fixed = fixed.replace(/,\s*$/, '');
       fixed = fixed.replace(/:\s*"[^"]*$/, ':""');
       fixed = fixed.replace(/:\s*$/, ':""');
-      // 补全括号
       var openB = (fixed.match(/{/g) || []).length;
       var closeB = (fixed.match(/}/g) || []).length;
       var openS = (fixed.match(/\[/g) || []).length;
@@ -1360,19 +1352,13 @@
 
     // 尝试解析JSON
     function tryParseJson(str) {
-      try {
-        return JSON.parse(str);
-      } catch (e) {
+      try { return JSON.parse(str); } catch (e) {
         var fixed = fixTruncatedJson(str);
-        try {
-          return JSON.parse(fixed);
-        } catch (e2) {
-          return null;
-        }
+        try { return JSON.parse(fixed); } catch (e2) { return null; }
       }
     }
 
-    // 从原始文本提取JSON（忽略markdown包裹）
+    // 第一步：尝试完整JSON解析
     var jsonStr = extractJson(raw);
     if (jsonStr) {
       var j = tryParseJson(jsonStr);
@@ -1388,71 +1374,83 @@
       }
     }
 
-    // JSON解析失败，尝试用正则从JSON文本中提取字段
-    if (!result.stem) {
-      var stemMatch = raw.match(/"stem"\s*:\s*"([\s\S]*?)"\s*(?:,|\s*})/);
-      var catMatch = raw.match(/"category"\s*:\s*"([^"]*)"/);
-      var subMatch = raw.match(/"subCategory"\s*:\s*"([^"]*)"/);
-      var ansMatch = raw.match(/"answer"\s*:\s*"([^"]*)"/);
-      var optMatch = raw.match(/"options"\s*:\s*\[([\s\S]*?)\]/);
-      if (stemMatch) result.stem = stemMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
-      if (catMatch) result.category = catMatch[1];
-      if (subMatch) result.subCategory = subMatch[1];
-      if (ansMatch) result.answer = String(ansMatch[1]).charAt(0).toUpperCase();
-      if (optMatch) {
-        var optParts = optMatch[1].match(/"([^"]*)"/g);
-        if (optParts && optParts.length >= 2) {
-          result.options = optParts.map(function (o) {
-            return o.replace(/^"|"$/g, '').trim();
-          });
-        }
-      }
-      if (result.stem) return result;
+    // 第二步：逐字段正则提取（支持截断JSON）
+    function extractField(name) {
+      // 匹配 "name": "value" 或 "name": "value" 后面可能是逗号、换行、}
+      var re = new RegExp('"' + name + '"\\s*:\\s*"([\\s\\S]*?)"\\s*[}\\],]', 'm');
+      var m = raw.match(re);
+      if (m) return m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      // 尝试匹配到字符串末尾（截断情况）
+      var re2 = new RegExp('"' + name + '"\\s*:\\s*"([\\s\\S]*?)\\s*$', 'm');
+      var m2 = raw.match(re2);
+      if (m2) return m2[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+      return null;
+    }
+    function extractString(name) {
+      var re = new RegExp('"' + name + '"\\s*:\\s*"([^"]*)"');
+      var m = raw.match(re);
+      return m ? m[1] : null;
     }
 
-    // 最终fallback：纯文本解析（但跳过```json和JSON内容）
+    var stemVal = extractField('stem');
+    var catVal = extractString('category');
+    var subVal = extractString('subCategory');
+    var ansVal = extractString('answer');
+
+    // 提取options数组
+    var optionsArr = [];
+    var optRe = /"options"\s*:\s*\[([\s\S]*?)\]/;
+    var optMatch = raw.match(optRe);
+    if (optMatch) {
+      var parts = optMatch[1].match(/"([^"]*)"/g);
+      if (parts) {
+        optionsArr = parts.map(function (o) { return o.replace(/^"|"$/g, '').trim(); });
+      }
+    }
+    // 截断情况：options数组没有闭合]
+    if (optionsArr.length < 2) {
+      var optRe2 = /"options"\s*:\s*\[([\s\S]*?)$/;
+      var optMatch2 = raw.match(optRe2);
+      if (optMatch2) {
+        var parts2 = optMatch2[1].match(/"([^"]*)"/g);
+        if (parts2 && parts2.length >= 2) {
+          optionsArr = parts2.map(function (o) { return o.replace(/^"|"$/g, '').trim(); });
+        }
+      }
+    }
+
+    if (stemVal) result.stem = stemVal;
+    if (catVal) result.category = catVal;
+    if (subVal) result.subCategory = subVal;
+    if (ansVal) result.answer = ansVal.charAt(0).toUpperCase();
+    if (optionsArr.length >= 2) result.options = optionsArr;
+    if (result.stem) return result;
+
+    // 第三步：纯文本解析
+    var lines = raw.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
     var optionReStrict = /^([A-F])\s*[.、．)）:：]\s*(.+)$/;
     var optionReNoSep = /^([A-F])\s+(.+)$/;
+    var optionReJson = /^["""]?([A-F])\s*[.、．)）:：]\s*(.+?)[""",]?\s*$/;
     var optionReLoose = /([A-F])\s*[.、．)）:：]\s*(.+)$/;
-    var answerRe =
-      /(?:正\s*确|参\s*考|标\s*准|应\s*选|应\s*该|选\s*择)?\s*答[案秦窒]\s*(?:是|为|[:：])?\s*([A-F])|(?:正\s*确|应\s*选)\s*(?:选\s*项|答[案秦窒])?\s*(?:是|为|[:：])?\s*([A-F])|(?:选|选择|选中)\s*([A-F])(?:\s|$)/;
+    var answerRe = /(?:正\s*确|参\s*考|标\s*准|应\s*选|应\s*该|选\s*择)?\s*答[案秦窒]\s*(?:是|为|[:：])?\s*([A-F])|(?:选|选择|选中)\s*([A-F])(?:\s|$)/;
     var stemLines = [];
     var optionLines = [];
     var inOptions = false;
-    var skipJson = false;
+
     lines.forEach(function (line) {
-      if (line.indexOf('```') >= 0 || line.match(/^\s*\{/) || line.match(/^\s*"/)) {
-        skipJson = true;
-        return;
-      }
-      if (skipJson && (line.indexOf('}') >= 0 || line.indexOf(']') >= 0)) {
-        skipJson = false;
-        return;
-      }
-      if (skipJson) return;
       if (!result.answer) {
         var am = line.match(answerRe);
-        if (am) {
-          result.answer = am[1] || am[2] || am[3];
-          line = line.replace(answerRe, "").trim();
-        }
+        if (am) { result.answer = am[1] || am[2]; line = line.replace(answerRe, "").trim(); }
       }
-      var m = line.match(optionReStrict) || line.match(optionReNoSep);
+      var m = line.match(optionReStrict) || line.match(optionReNoSep) || line.match(optionReJson);
       if (m) {
         inOptions = true;
         optionLines.push({ key: m[1], text: m[2] });
         return;
       }
-      if (!inOptions) {
-        stemLines.push(line);
-        return;
-      }
+      if (!inOptions) { stemLines.push(line); return; }
       var lm = line.match(optionReLoose);
-      if (
-        lm &&
-        optionLines.length &&
-        lm[1] > optionLines[optionLines.length - 1].key
-      ) {
+      if (lm && optionLines.length && lm[1] > optionLines[optionLines.length - 1].key) {
         optionLines.push({ key: lm[1], text: lm[2] });
       } else if (optionLines.length) {
         optionLines[optionLines.length - 1].text += line;
@@ -1461,16 +1459,10 @@
 
     if (optionLines.length >= 2) {
       result.stem = stemLines.join("\n");
-      result.options = optionLines.map(function (o) {
-        return o.key + ". " + o.text;
-      });
+      result.options = optionLines.map(function (o) { return o.key + ". " + o.text; });
       if (!result.stem) result.stem = "（题干识别失败，请手动补充）";
     } else if (!result.stem) {
-      // 只用非JSON的行作为题干
-      var cleanLines = stemLines.filter(function (l) {
-        return l.indexOf('```') < 0 && l.indexOf('"category"') < 0 && l.indexOf('"stem"') < 0;
-      });
-      result.stem = cleanLines.length ? cleanLines.join("\n") : "（题干识别失败，请手动补充）";
+      result.stem = stemLines.length ? stemLines.join("\n") : "（题干识别失败，请手动补充）";
     }
     return result;
   }

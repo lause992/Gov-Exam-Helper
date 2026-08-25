@@ -1,1 +1,1 @@
-{"version":116,"notes":"v11.6: JSON解析失败时不再把JSON当题干+正则提取fallback"}
+{"version":117,"notes":"v11.7: 完全重写parseOcrText-三层解析+截断JSON逐字段提取"}
