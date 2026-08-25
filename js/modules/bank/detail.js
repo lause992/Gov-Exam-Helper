@@ -1464,6 +1464,43 @@
     } else if (!result.stem) {
       result.stem = stemLines.length ? stemLines.join("\n") : "（题干识别失败，请手动补充）";
     }
+
+    // 清理stem中混入的JSON内容和选项行
+    if (result.stem) {
+      var cleanLines = result.stem.split('\n').filter(function (line) {
+        var t = line.trim();
+        if (!t) return false;
+        // 跳过JSON包装行
+        if (t === '```json' || t === '```' || t === '{' || t === '}' || t === '[' || t === ']') return false;
+        if (t.match(/^\s*"[a-zA-Z]/)) return false; // JSON字段行
+        // 跳过选项行（A. B. C. D.）
+        if (t.match(/^[A-D]\s*[.、．)）:：]/)) return false;
+        // 跳过含options/answer/category的JSON片段
+        if (t.indexOf('"options"') >= 0 || t.indexOf('"answer"') >= 0) return false;
+        if (t.indexOf('"category"') >= 0 || t.indexOf('"subCategory"') >= 0) return false;
+        return true;
+      });
+      result.stem = cleanLines.join('\n').trim();
+    }
+
+    // 如果提取到了stem但没有options，尝试从stem文本中提取选项
+    if (result.stem && result.options.length < 2) {
+      var optInStem = [];
+      result.stem.split('\n').forEach(function (line) {
+        var t = line.trim();
+        var m = t.match(optionReStrict) || t.match(optionReNoSep);
+        if (m) optInStem.push(m[1] + ". " + m[2]);
+      });
+      if (optInStem.length >= 2) {
+        result.options = optInStem;
+        // 从stem中移除选项行
+        result.stem = result.stem.split('\n').filter(function (line) {
+          return !line.trim().match(/^[A-D]\s*[.、．)）:：]/);
+        }).join('\n').trim();
+      }
+    }
+
+    if (!result.stem) result.stem = "（题干识别失败，请手动补充）";
     return result;
   }
 
