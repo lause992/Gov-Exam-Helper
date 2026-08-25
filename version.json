@@ -1,1 +1,1 @@
-{"version":112,"notes":"v11.2: 修复max_tokens超限错误+精简OCR prompt"}
+{"version":113,"notes":"v11.3: 更健壮的markdown去除+截断JSON修复"}

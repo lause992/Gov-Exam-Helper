@@ -1332,7 +1332,8 @@
       .filter(Boolean);
     var result = { stem: "", options: [], answer: "", category: "", subCategory: "" };
     var stripped = String(text || "").trim();
-    stripped = stripped.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    // 去除markdown代码块包裹
+    stripped = stripped.replace(/^[\s\S]*?```(?:json)?\s*/i, '').replace(/\s*```[\s\S]*?$/i, '').trim();
     if (stripped.charAt(0) === '{') {
       try {
         var j = JSON.parse(stripped);
@@ -1344,7 +1345,34 @@
           result.options = j.options.map(function (o) { return String(o).trim(); });
           return result;
         }
-      } catch (e) { /* fall through to text parsing */ }
+        // JSON解析成功但没有选项，仍然返回stem等信息
+        if (result.stem) return result;
+      } catch (e) {
+        // JSON被截断，尝试修复后解析
+        var fixed = stripped;
+        // 补全被截断的JSON
+        var openBraces = (fixed.match(/{/g) || []).length;
+        var closeBraces = (fixed.match(/}/g) || []).length;
+        var openBrackets = (fixed.match(/\[/g) || []).length;
+        var closeBrackets = (fixed.match(/]/g) || []).length;
+        // 移除末尾不完整的值
+        fixed = fixed.replace(/,\s*"[^"]*"\s*$/, '');
+        fixed = fixed.replace(/:\s*"[^"]*$/, ':""');
+        // 补全括号
+        for (var i = 0; i < openBrackets - closeBrackets; i++) fixed += ']';
+        for (var i = 0; i < openBraces - closeBraces; i++) fixed += '}';
+        try {
+          var j2 = JSON.parse(fixed);
+          if (j2.category) result.category = j2.category;
+          if (j2.subCategory) result.subCategory = j2.subCategory;
+          if (j2.stem) result.stem = j2.stem;
+          if (j2.answer) result.answer = String(j2.answer).charAt(0).toUpperCase();
+          if (Array.isArray(j2.options) && j2.options.length >= 2) {
+            result.options = j2.options.map(function (o) { return String(o).trim(); });
+          }
+          if (result.stem) return result;
+        } catch (e2) { /* fall through to text parsing */ }
+      }
     }
     var optionReStrict = /^([A-F])\s*[.、．)）:：]\s*(.+)$/;
     var optionReNoSep = /^([A-F])\s+(.+)$/;
