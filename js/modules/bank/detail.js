@@ -1332,8 +1332,19 @@
       .filter(Boolean);
     var result = { stem: "", options: [], answer: "", category: "", subCategory: "" };
     var stripped = String(text || "").trim();
-    // 去除markdown代码块包裹
-    stripped = stripped.replace(/^[\s\S]*?```(?:json)?\s*/i, '').replace(/\s*```[\s\S]*?$/i, '').trim();
+    // 去除markdown代码块包裹（更健壮）
+    var fenceStart = stripped.indexOf('```');
+    if (fenceStart >= 0) {
+      var afterFence = stripped.substring(fenceStart + 3);
+      // 跳过 json 标记和空白
+      afterFence = afterFence.replace(/^(?:json)?\s*/i, '');
+      var fenceEnd = afterFence.lastIndexOf('```');
+      if (fenceEnd >= 0) {
+        stripped = afterFence.substring(0, fenceEnd).trim();
+      } else {
+        stripped = afterFence.trim();
+      }
+    }
     if (stripped.charAt(0) === '{') {
       try {
         var j = JSON.parse(stripped);
